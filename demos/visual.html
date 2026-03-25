@@ -1,0 +1,483 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mermaid | Visual Pro Editor (X6 Engine)</title>
+    <!-- AntV X6 Core & Plugins -->
+    <script src="https://unpkg.com/@antv/x6/dist/x6.js"></script>
+    <script src="https://unpkg.com/@antv/x6-plugin-export/dist/index.js"></script>
+    <script src="https://unpkg.com/@antv/x6-plugin-selection/dist/index.js"></script>
+    <script src="https://unpkg.com/@antv/layout/dist/layout.min.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&family=Fira+Code&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --bg-deep: #0f172a;
+            --bg-panel: #1e293b;
+            --accent: #6366f1;
+            --text-main: #f8fafc;
+            --text-dim: #94a3b8;
+            --border: #334155;
+        }
+
+        body, html {
+            margin: 0; padding: 0; height: 100%;
+            background: var(--bg-deep);
+            color: var(--text-main);
+            font-family: 'Inter', sans-serif;
+            overflow: hidden;
+        }
+
+        .layout {
+            display: grid;
+            grid-template-columns: 320px 1fr;
+            height: 100vh;
+        }
+
+        /* Sidebar Styling */
+        .sidebar {
+            background: var(--bg-panel);
+            border-right: 1px solid var(--border);
+            display: flex;
+            flex-direction: column;
+            padding: 20px;
+            z-index: 10;
+            box-shadow: 4px 0 15px rgba(0,0,0,0.3);
+        }
+
+        .header {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            margin-bottom: 30px;
+        }
+
+        .logo-icon {
+            width: 32px; height: 32px;
+            background: linear-gradient(135deg, var(--accent), #818cf8);
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            font-weight: bold; font-size: 18px;
+        }
+
+        h1 { font-size: 18px; margin: 0; background: linear-gradient(to right, #fff, #94a3b8); -webkit-background-clip: text; -webkit-text-fill-color: transparent; }
+
+        .section-title {
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            color: var(--text-dim);
+            margin: 20px 0 12px 0;
+            display: flex; align-items: center; gap: 8px;
+        }
+        .section-title::after { content: ''; flex: 1; height: 1px; background: var(--border); }
+
+        /* Code Area */
+        #code-area {
+            flex: 1;
+            background: #0b0f1a;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            color: #d1d5db;
+            font-family: 'Fira Code', monospace;
+            font-size: 13px;
+            padding: 15px;
+            resize: none;
+            outline: none;
+            line-height: 1.6;
+            transition: border-color 0.2s;
+        }
+        #code-area:focus { border-color: var(--accent); box-shadow: 0 0 0 2px rgba(99, 102, 241, 0.2); }
+
+        /* Main Canvas */
+        .main-container { position: relative; display: flex; flex-direction: column; }
+        
+        .toolbar {
+            height: 60px;
+            background: rgba(15, 23, 42, 0.8);
+            backdrop-filter: blur(8px);
+            border-bottom: 1px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: flex-end;
+            padding: 0 24px;
+            gap: 12px;
+        }
+
+        #container { flex: 1; background: radial-gradient(var(--border) 1px, transparent 1px); background-size: 30px 30px; }
+
+        .btn {
+            padding: 8px 16px;
+            border-radius: 8px;
+            border: none;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 13px;
+            display: flex; align-items: center; gap: 8px;
+            transition: all 0.2s;
+        }
+
+        .btn-primary { background: var(--accent); color: white; }
+        .btn-primary:hover { background: #4f46e5; transform: translateY(-1px); }
+        .btn-secondary { background: var(--bg-panel); color: var(--text-main); border: 1px solid var(--border); }
+        .btn-secondary:hover { background: #2d3748; }
+
+        .btn-ghost { background: transparent; color: var(--text-dim); border: 1px solid transparent; }
+        .btn-ghost:hover { color: var(--text-main); border-color: var(--border); }
+
+        .footer-info {
+            position: absolute; bottom: 12px; left: 24px;
+            font-size: 11px; color: var(--text-dim);
+            pointer-events: none;
+        }
+
+        /* X6 Custom Node Styles */
+        .x6-node-rect {
+            filter: drop-shadow(0 4px 6px rgba(0,0,0,0.3));
+        }
+    </style>
+</head>
+<body>
+
+    <div class="layout">
+        <aside class="sidebar">
+            <div class="header">
+                <div class="logo-icon">M</div>
+                <h1>Visual Studio Pro</h1>
+            </div>
+
+            <div class="section-title">Mermaid Code</div>
+            <textarea id="code-area" spellcheck="false">stateDiagram-v2
+    [*] --> Still
+    Still --> [*]
+
+    state Still {
+        [*] --> second
+        second --> [*]
+    }
+
+    Still --> Moving
+    Moving --> Still
+    Moving --> Crash
+    Crash --> [*]</textarea>
+
+            <div style="margin-top: 15px;">
+                <button class="btn btn-primary" style="width: 100%;" onclick="syncCanvas()">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15"></path></svg>
+                    Sync Canvas
+                </button>
+            </div>
+
+            <div class="section-title">Quick Actions</div>
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
+                <button class="btn btn-secondary btn-ghost" onclick="resetCanvas()">Reset</button>
+                <button class="btn btn-secondary btn-ghost" onclick="copyCode()">Copy MD</button>
+            </div>
+        </aside>
+
+        <main class="main-container">
+            <div class="toolbar">
+                <button class="btn btn-secondary" onclick="exportPNG()">
+                    <svg width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" viewBox="0 0 24 24"><path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path></svg>
+                    PNG
+                </button>
+                <button class="btn btn-secondary" onclick="exportSVG()">SVG</button>
+            </div>
+            <div id="container"></div>
+            <div class="footer-info" id="status-bar">Local Engine V4.0 (X6) Active</div>
+        </main>
+    </div>
+
+    <script>
+        const { Graph, Shape, Node, Edge } = X6;
+
+        // Initialize Graph
+        const graph = new Graph({
+            container: document.getElementById('container'),
+            background: { color: 'transparent' },
+            grid: { size: 10, visible: true, type: 'dot', args: { color: '#334155', thickness: 1 } },
+            autoResize: true,
+            panning: true,
+            mousewheel: { enabled: true, modifiers: ['ctrl', 'meta'] },
+            selecting: { enabled: true, rubberband: true, showNodeSelectionBox: true },
+            connecting: {
+                snap: true,
+                allowBlank: false,
+                allowLoop: true,
+                highlight: true,
+                router: { name: 'metro' }, // Smart routing
+                connector: { name: 'rounded' }
+            },
+            embedding: {
+                enabled: true,
+                findParent({ node }) {
+                    const bbox = node.getBBox();
+                    return this.getNodes().filter((n) => {
+                        const data = n.getData();
+                        if (data && data.isParent) {
+                            const targetBBox = n.getBBox();
+                            return targetBBox.containsRect(bbox);
+                        }
+                        return false;
+                    });
+                },
+            },
+        });
+
+        // Use Export and Selection plugins
+        graph.use(new X6PluginExport.Export());
+        graph.use(new X6PluginSelection.Selection());
+
+        // Define Professional Styles
+        const THEME = {
+            nodeFill: '#ffffff',
+            nodeStroke: '#0f172a',
+            nodeText: '#0f172a',
+            parentFill: 'rgba(99, 102, 241, 0.05)',
+            parentStroke: '#6366f1',
+            edgeStroke: '#64748b'
+        };
+
+        // --- CORE PARSER & SYNC ---
+
+        function syncCanvas() {
+            const code = document.getElementById('code-area').value;
+            graph.clearCells();
+            
+            const lines = code.split('\n').map(l => l.trim()).filter(l => l && !l.match(/^(stateDiagram-v2|stateDiagram)/));
+            const nodeMap = {};
+
+            // Simplified Multi-pass parser for Hierarchy
+            // Pass 1: Handle block states {}
+            let currentParent = null;
+            const parentMap = {};
+
+            const parseHierarchy = () => {
+                let i = 0;
+                while(i < lines.length) {
+                    const line = lines[i];
+                    
+                    // Detection: state "Name" as ID { ... }
+                    const blockMatch = line.match(/^state\s+["']?(.*?)["']?\s+as\s+([a-zA-Z0-9_]+)\s*\{/);
+                    const blockSimpleMatch = line.match(/^state\s+([a-zA-Z0-9_]+)\s*\{/);
+                    
+                    if (blockMatch || blockSimpleMatch) {
+                        const name = blockMatch ? blockMatch[1] : "";
+                        const id = blockMatch ? blockMatch[2] : blockSimpleMatch[1];
+                        
+                        const parent = graph.addNode({
+                            id: id,
+                            shape: 'mermaid-composite',
+                            x: 100, y: 100,
+                            label: name || id,
+                            zIndex: 0, // Behind children
+                            data: { isParent: true }
+                        });
+                        parentMap[id] = parent;
+                        currentParent = parent;
+                    } else if (line === '}') {
+                        currentParent = null;
+                    } else if (line.includes('-->')) {
+                        // Regular transition: Source --> Target : Label
+                        const parts = line.split('-->');
+                        if (parts.length === 2) {
+                            const srcPart = parts[0].trim();
+                            const rest = parts[1].trim();
+                            const hasLabel = rest.includes(':');
+                            const tgtPart = hasLabel ? rest.split(':')[0].trim() : rest;
+                            const label = hasLabel ? rest.split(':')[1].trim() : "";
+
+                            const srcNode = getOrCreate(srcPart, currentParent);
+                            const tgtNode = getOrCreate(tgtPart, currentParent);
+
+                            graph.addEdge({
+                                source: srcNode,
+                                target: tgtNode,
+                                label: label,
+                                attrs: {
+                                    line: { stroke: THEME.edgeStroke, strokeWidth: 2, targetMarker: 'classic' }
+                                }
+                            });
+                        }
+                    } else if (line.includes('<<choice>>')) {
+                        const choiceMatch = line.match(/^state\s+([a-zA-Z0-9_]+)\s+<<choice>>/);
+                        if (choiceMatch) {
+                           const choiceId = choiceMatch[1];
+                           getOrCreate(choiceId, currentParent, 'mermaid-choice');
+                        }
+                    }
+                    i++;
+                }
+            };
+
+            const getOrCreate = (id, parentNode = null, overrideType = null) => {
+                const isTerminal = (id === '[*]');
+                const realId = isTerminal ? 'terminal_' + (parentNode ? parentNode.id + '_' : '') + graph.getNodes().length : id;
+                
+                let existing = graph.getCellById(realId);
+                if (existing) return existing;
+
+                let type = overrideType || 'rect';
+                let labelText = id;
+                
+                if (isTerminal) {
+                    const hasStart = graph.getNodes().some(n => n.shape === 'mermaid-start');
+                    type = hasStart ? 'mermaid-end' : 'mermaid-start';
+                    labelText = '';
+                }
+
+                const newNode = graph.addNode({
+                    id: realId,
+                    shape: type,
+                    width: isTerminal ? 24 : 120,
+                    height: isTerminal ? 24 : 44,
+                    label: labelText,
+                    attrs: {
+                        body: { fill: THEME.nodeFill, stroke: THEME.nodeStroke, strokeWidth: 2, rx: 10, ry: 10 },
+                        label: { fill: THEME.nodeText, fontSize: 13, fontWeight: 600 }
+                    }
+                });
+
+                if (parentNode) {
+                    parentNode.addChild(newNode);
+                }
+                return newNode;
+            };
+
+            parseHierarchy();
+
+            // Automatic Layout using Dagre-like logic
+            // (Since ELK is heavy, we'll try a simpler vertical distribution first)
+            const allNodes = graph.getNodes();
+            allNodes.forEach((node, idx) => {
+                if (!node.hasParent()) {
+                    node.position(400 + (idx % 2) * 200, 100 + Math.floor(idx / 2) * 150);
+                }
+            });
+        }
+
+        // --- BI-DIRECTIONAL SYNC (Canvas to Code) ---
+
+        function updateCode() {
+            let code = "stateDiagram-v2\n";
+            const nodes = graph.getNodes();
+            const visited = new Set();
+
+            // 1. Handle Composite States first
+            nodes.filter(n => n.getData()?.isParent).forEach(parent => {
+                const id = parent.id;
+                const label = parent.label;
+                code += `    state "${label}" as ${id} {\n`;
+                
+                const children = parent.getChildren() || [];
+                children.forEach(child => {
+                    const childId = child.id.startsWith('terminal_') ? '[*]' : child.id;
+                    if (child.shape === 'mermaid-choice') {
+                       code += `        state ${childId} <<choice>>\n`;
+                    } else if (!childId.includes('terminal_')) {
+                       code += `        ${childId}\n`;
+                    }
+                    visited.add(child.id);
+                });
+                code += "    }\n";
+                visited.add(id);
+            });
+
+            // 2. Handle Top-level States
+            nodes.filter(n => !visited.has(n.id) && n.shape !== 'mermaid-start' && n.shape !== 'mermaid-end').forEach(node => {
+                if (node.shape === 'mermaid-choice') {
+                   code += `    state ${node.id} <<choice>>\n`;
+                } else {
+                   code += `    ${node.id}\n`;
+                }
+            });
+
+            // 3. Handle Transitions
+            graph.getEdges().forEach(edge => {
+                const source = edge.getSourceNode();
+                const target = edge.getTargetNode();
+                if (!source || !target) return;
+
+                const srcId = source.id.startsWith('terminal_') ? '[*]' : source.id;
+                const tgtId = target.id.startsWith('terminal_') ? '[*]' : target.id;
+                const label = edge.getLabels()[0]?.attrs?.text?.text || "";
+                
+                code += `    ${srcId} --> ${tgtId}${label ? " : " + label : ""}\n`;
+            });
+
+            document.getElementById('code-area').value = code.trim();
+        }
+
+        graph.on('node:moved', updateCode);
+        graph.on('edge:connected', updateCode);
+        graph.on('node:added', updateCode);
+        graph.on('node:removed', updateCode);
+        graph.on('edge:removed', updateCode);
+        graph.on('cell:changed', ({ cell, options }) => {
+            if (options.manual) updateCode();
+        });
+
+        // --- UTILS ---
+        function exportPNG() {
+            graph.exportPNG('mermaid-diagram.png', { padding: 20, backgroundColor: '#ffffff' });
+        }
+        function exportSVG() {
+            graph.exportSVG('mermaid-diagram.svg', { padding: 20 });
+        }
+        function copyCode() {
+            const code = document.getElementById('code-area').value;
+            navigator.clipboard.writeText(code);
+            alert("Code copied!");
+        }
+        function resetCanvas() {
+            if(confirm("Reset canvas and code?")) {
+                document.getElementById('code-area').value = "stateDiagram-v2\n    [*] --> Still\n    Still --> [*]";
+                syncCanvas();
+            }
+        }
+
+        // --- CUSTOM SHAPES ---
+
+        Graph.registerNode('mermaid-start', {
+            inherit: 'circle',
+            width: 20, height: 20,
+            attrs: {
+                body: { fill: '#1e293b', stroke: '#1e293b', strokeWidth: 1 }
+            }
+        });
+
+        Graph.registerNode('mermaid-end', {
+            inherit: 'circle',
+            width: 24, height: 24,
+            markup: [
+                { tagName: 'circle', selector: 'outer' },
+                { tagName: 'circle', selector: 'inner' },
+            ],
+            attrs: {
+                outer: { r: 12, cx: 12, cy: 12, fill: 'transparent', stroke: '#1e293b', strokeWidth: 2 },
+                inner: { r: 6, cx: 12, cy: 12, fill: '#1e293b', stroke: 'none' }
+            }
+        });
+
+        Graph.registerNode('mermaid-composite', {
+            inherit: 'rect',
+            width: 300, height: 200,
+            attrs: {
+                body: { fill: 'rgba(99, 102, 241, 0.03)', stroke: '#6366f1', strokeWidth: 2, strokeDasharray: '5 5', rx: 12, ry: 12 },
+                label: { fill: '#6366f1', fontSize: 13, fontWeight: 'bold', refY: 15, refX: 15, textAnchor: 'start' }
+            }
+        });
+
+        // Initialize sync on startup
+        window.onload = () => {
+             syncCanvas();
+             // Force dynamic resizing
+             window.addEventListener('resize', () => {
+                 const container = document.getElementById('container');
+                 graph.resize(container.offsetWidth, container.offsetHeight);
+             });
+        };
+
+    </script>
+</body>
+</html>

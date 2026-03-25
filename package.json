@@ -153,5 +153,9 @@
       "sharp",
       "vue-demi"
     ]
+  },
+  "dependencies": {
+    "@logicflow/core": "1.2.5",
+    "@logicflow/extension": "1.2.5"
   }
 }

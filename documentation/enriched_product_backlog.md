@@ -1,0 +1,15 @@
+## Visual WYSIWYG Upgrade
+- **Problem**: The initial prototype lacks bi-directional sync, advanced link handling, and professional export options.
+- **Expected Results**: A full-featured visual editor that feels like a professional diagramming tool.
+- **Functional Requirements**:
+  - [ ] Anchored links (move with nodes, detachable).
+  - [ ] Edge labels (text on links).
+  - [ ] Prevent global text selection on drag.
+  - [ ] Bi-directional sync (Code <-> Visual).
+  - [ ] Automatic link routing.
+  - [ ] Multi-theme support with high readability.
+  - [ ] Exports: Image (PNG/SVG) and `.md` file.
+- **Indicators**:
+  - 🔴 **Complexité** : 9 (Bi-directional sync is difficult with Mermaid).
+  - ⚠️ **Risque / Impact Structurel** : 2 (Major UI update).
+  - ⭐ **Intérêt Utilisateur** : 10 (Critical for usability).

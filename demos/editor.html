@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Mermaid | Premium Local Editor</title>
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600&family=JetBrains+Mono&display=swap" rel="stylesheet">
+    <style>
+        :root { --bg-deep: #0f172a; --bg-card: #1e293b; --accent: #38bdf8; --text-main: #f1f5f9; --border: #334155; }
+        body { font-family: 'Outfit', sans-serif; background: var(--bg-deep); color: var(--text-main); height: 100vh; display: flex; flex-direction: column; margin: 0; overflow: hidden; }
+        header { padding: 1rem 2rem; background: rgba(30, 41, 59, 0.8); border-bottom: 1px solid var(--border); display: flex; justify-content: space-between; align-items: center; }
+        .logo { font-size: 1.5rem; font-weight: 600; color: var(--accent); }
+        .actions { display: flex; gap: 1rem; }
+        button { background: var(--bg-card); border: 1px solid var(--border); color: white; padding: 0.5rem 1rem; border-radius: 8px; cursor: pointer; transition: 0.2s; font-family: inherit; }
+        button:hover { border-color: var(--accent); }
+        button.primary { background: var(--accent); color: var(--bg-deep); border: none; font-weight: 600; }
+        main { display: flex; flex: 1; overflow: hidden; }
+        #editor-container { width: 40%; background: #0b0f1a; border-right: 1px solid var(--border); display: flex; flex-direction: column; }
+        #code-editor { flex: 1; background: transparent; color: #cbd5e1; padding: 1.5rem; font-family: 'JetBrains Mono', monospace; font-size: 14px; border: none; outline: none; line-height: 1.6; }
+        #preview-container { flex: 1; display: flex; align-items: center; justify-content: center; overflow: auto; background: var(--bg-deep); padding: 2rem; position: relative; }
+        #graph-output { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+        #debug-info { position: absolute; bottom: 1rem; left: 1rem; color: var(--border); font-size: 10px; font-family: monospace; pointer-events: none; }
+    </style>
+</head>
+<body>
+    <header>
+        <div class="logo"> Mermaid Live</div>
+        <div class="actions">
+            <button onclick="downloadPNG()" class="primary">📸 Export PNG</button>
+            <button onclick="downloadSVG()">💾 Export SVG</button>
+        </div>
+    </header>
+    <main>
+        <div id="editor-container">
+            <textarea id="code-editor" spellcheck="false"></textarea>
+        </div>
+        <div id="preview-container">
+            <div id="debug-info">Local Engine V3.1 Active</div>
+            <div id="graph-output"></div>
+        </div>
+    </main>
+
+    <script type="module">
+        import mermaid from '/mermaid.esm.mjs';
+        const editor = document.getElementById('code-editor');
+        const output = document.getElementById('graph-output');
+
+        mermaid.initialize({ startOnLoad: false, theme: 'dark', securityLevel: 'loose', fontFamily: 'Outfit' });
+
+        async function updatePreview() {
+            const code = editor.value.trim();
+            if (!code) return;
+            try {
+                const { svg } = await mermaid.render('mermaid-svg', code);
+                output.innerHTML = svg;
+                const svgNode = output.querySelector('svg');
+                if (svgNode) { svgNode.style.maxWidth = '100%'; svgNode.style.maxHeight = '100%'; }
+            } catch (e) { console.error("Render error", e); }
+        }
+
+        editor.addEventListener('input', () => { setTimeout(updatePreview, 300); });
+
+        window.downloadSVG = () => {
+            const blob = new Blob([output.innerHTML], { type: 'image/svg+xml' });
+            const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = 'diagram.svg'; a.click();
+        };
+
+        window.downloadPNG = () => {
+            const svg = output.querySelector('svg');
+            if (!svg) return;
+            const img = new Image();
+            const svgData = new XMLSerializer().serializeToString(svg);
+            const svgBlob = new Blob([svgData], { type: 'image/svg+xml;charset=utf-8' });
+            const url = URL.createObjectURL(svgBlob);
+            
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const bbox = svg.getBBox();
+                const padding = 20;
+                const scale = 2;
+                canvas.width = (bbox.width + padding * 2) * scale;
+                canvas.height = (bbox.height + padding * 2) * scale;
+                const ctx = canvas.getContext('2d');
+                ctx.scale(scale, scale);
+                ctx.fillStyle = "white";
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                // Offset by bbox to handle SVGs not starting at 0,0
+                ctx.drawImage(img, padding - bbox.x, padding - bbox.y);
+                const a = document.createElement('a'); a.href = canvas.toDataURL('image/png'); a.download = 'mermaid-editor.png'; a.click();
+                URL.revokeObjectURL(url);
+            };
+            img.src = url;
+        };
+
+        editor.value = "stateDiagram-v2\n    [*] --> Still\n    Still --> [*]\n    Still --> Moving\n    Moving --> Still\n    Moving --> Crash\n    Crash --> [*]";
+        updatePreview();
+    </script>
+</body>
+</html>
