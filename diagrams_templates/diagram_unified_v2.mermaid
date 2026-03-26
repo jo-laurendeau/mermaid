@@ -1,0 +1,98 @@
+stateDiagram-v2
+    direction TB
+
+    %% Global State Definitions for Compatibility
+    state "OPEN" as OPEN
+    state "DRAFT" as DRAFT
+    state "SUBMITTED" as SUBMITTED
+    state "MACRO-STUDY" as MACRO_STUDY
+    state "BUSINESS ANALYST" as BUSINESS_ANALYST
+    state "INFORMATION NEEDED" as INFORMATION_NEEDED
+    state "WAITING FOR EXT STAKEHOLDERS" as WAITING_FOR_EXT_STAKEHOLDERS
+    state "ACCEPTED" as ACCEPTED
+    state "CANDIDACY GATE" as CANDIDACY_GATE
+    state "À PRIORISER" as A_PRIORISER
+    state "BACKLOG" as BACKLOG
+    state "READY" as READY
+    state "IN PROGRESS" as IN_PROGRESS
+    state "IMPLEMENTATION IN PROGRESS" as IMPLEMENTATION_IN_PROGRESS
+    state "CODE REVIEW" as CODE_REVIEW
+    state "WAITING FOR REPRODUCTION" as WAITING_FOR_REPRODUCTION
+    state "SUSPENDED" as SUSPENDED
+    state "TO DELIVER" as TO_DELIVER
+    state "TEST PRODUIT" as TEST_PRODUIT
+    state "CCQA" as CCQA
+    state "TESTING BLOCKED" as TESTING_BLOCKED
+    state "CHECK DOD" as CHECK_DOD
+    state "READY FOR RELEASE" as READY_FOR_RELEASE
+    state "BE VALIDATED BY OWNER" as BE_VALIDATED_BY_OWNER
+    state "REJECTED" as REJECTED
+    state "CLOSED" as CLOSED
+    state "CLOSED/REJETED" as CLOSED_REJETED
+    state "ABANDONNED" as ABANDONNED
+    state "SOLVED" as SOLVED
+    state "RESOLVED" as RESOLVED
+
+    [*] --> PHASE_QUALIFICATION
+
+    state "Phase 1: Qualification & Analyse" as PHASE_QUALIFICATION {
+        OPEN --> DRAFT : Create
+        DRAFT --> SUBMITTED : Request submitted
+        SUBMITTED --> MACRO_STUDY : Start Macro-study
+        
+        INFORMATION_NEEDED --> OPEN : Re-open
+        OPEN --> INFORMATION_NEEDED : Need info
+    }
+
+    PHASE_QUALIFICATION --> PHASE_DECISION
+
+    state "Phase 2: Décision (Gates)" as PHASE_DECISION {
+        MACRO_STUDY --> BUSINESS_ANALYST : A STATUER
+        BUSINESS_ANALYST --> ACCEPTED : Accepté
+        BUSINESS_ANALYST --> CANDIDACY_GATE : A STATUER EN GATE
+    }
+
+    PHASE_DECISION --> PHASE_PRIORITISATION
+
+    state "Phase 3: Priorisation & Backlog" as PHASE_PRIORITISATION {
+        ACCEPTED --> A_PRIORISER : à prioriser
+        A_PRIORISER --> BACKLOG : Continuous Improvement
+        A_PRIORISER --> READY : Smart Improvement
+    }
+
+    PHASE_PRIORITISATION --> PHASE_BUILD
+
+    state "Phase 4: Construction (Build)" as PHASE_BUILD {
+        IN_PROGRESS --> CODE_REVIEW : Submit to review
+        CODE_REVIEW --> IN_PROGRESS : Back to in progress
+        
+        IN_PROGRESS --> WAITING_FOR_REPRODUCTION : Test Failed
+        WAITING_FOR_REPRODUCTION --> IN_PROGRESS : Occurred again
+        
+        IN_PROGRESS --> SUSPENDED : Suspend work
+        SUSPENDED --> IN_PROGRESS : Continue work
+    }
+
+    PHASE_BUILD --> PHASE_QUALITY
+
+    state "Phase 5: Qualité & Vérification" as PHASE_QUALITY {
+        TO_DELIVER --> TEST_PRODUIT : internal test
+        TEST_PRODUIT --> CCQA : Submit to CCQA
+        CCQA --> TESTING_BLOCKED : Blocker raised
+        TESTING_BLOCKED --> CCQA : Blocker fixed
+        
+        CCQA --> CHECK_DOD : Validate DOD
+        CHECK_DOD --> READY_FOR_RELEASE : Ready
+    }
+
+    PHASE_QUALITY --> PHASE_FINAL_VALIDATION
+
+    state "Phase 6: Validation & Clôture" as PHASE_FINAL_VALIDATION {
+        READY_FOR_RELEASE --> BE_VALIDATED_BY_OWNER : Validate
+        BE_VALIDATED_BY_OWNER --> CLOSED : Done
+        
+        REJECTED --> CLOSED : Close
+        CLOSED --> CLOSED_REJETED
+    }
+
+    PHASE_FINAL_VALIDATION --> [*]

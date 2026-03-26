@@ -1,0 +1,71 @@
+stateDiagram-v2
+    direction TB
+
+    %% Entry
+    [*] --> DRAFT : Create
+
+    %% Analysis Phase
+    DRAFT --> SUBMITTED : Request submitted
+    SUBMITTED --> MACRO_STUDY : Start Macro-study
+    MACRO_STUDY --> BUSINESS_ANALYST : A STATUER
+    
+    BUSINESS_ANALYST --> ACCEPTED : Accepté
+    BUSINESS_ANALYST --> CANDIDACY_GATE : A STATUER EN GATE
+
+    %% Prioritization
+    ACCEPTED --> A_PRIORISER : à prioriser
+    
+    state "A_PRIORISER" as A_PRIORISER
+    A_PRIORISER --> IN_PROGRESS : Accepted as a Smart Improvement
+    A_PRIORISER --> BACKLOG : Accepted as a Continuous Improvement
+
+    %% Continuous Improvement Path
+    BACKLOG --> IMPLEMENTATION_IN_PROGRESS : Start work
+    IMPLEMENTATION_IN_PROGRESS --> CLOSED : Done
+
+    %% Smart Improvement Path
+    IN_PROGRESS --> CODE_REVIEW : Submit to review
+    CODE_REVIEW --> IN_PROGRESS : Back to in progress
+    CODE_REVIEW --> TO_DELIVER : Code review Done
+    
+    TO_DELIVER --> IN_TEST : Submit to Product Test
+    IN_TEST --> TO_BE_VALIDATED_BY_CCQA : Submit to CCQA TESTS
+    
+    TO_BE_VALIDATED_BY_CCQA --> CHECK_DOD : Submit to validate the DOD
+    CHECK_DOD --> READY_FOR_RELEASE : Ready for release
+    
+    READY_FOR_RELEASE --> TO_BE_VALIDATED_BY_OWNER : To be validated by owner
+    TO_BE_VALIDATED_BY_OWNER --> CLOSED : Done
+
+    %% Global / Error Paths
+    REJECTED --> DRAFT : Re-Open Request
+    REJECTED --> CLOSED_REJETED : Close Issue
+
+    %% State Definitions
+    state "DRAFT" as DRAFT
+    state "SUBMITTED" as SUBMITTED
+    state "MACRO-STUDY" as MACRO_STUDY
+    state "BUSINESS ANALYST" as BUSINESS_ANALYST
+    state "ACCEPTED" as ACCEPTED
+    state "À PRIORISER" as A_PRIORISER
+    state "BACKLOG" as BACKLOG
+    state "IN PROGRESS" as IN_PROGRESS
+    state "CODE REVIEW" as CODE_REVIEW
+    state "TO DELIVER" as TO_DELIVER
+    state "IN TEST" as IN_TEST
+    state "TO BE VALIDATED BY CCQA" as TO_BE_VALIDATED_BY_CCQA
+    state "CHECK DOD" as CHECK_DOD
+    state "READY FOR RELEASE" as READY_FOR_RELEASE
+    state "TO BE VALIDATED BY OWNER" as TO_BE_VALIDATED_BY_OWNER
+    state "IMPLEMENTATION IN PROGRESS" as IMPLEMENTATION_IN_PROGRESS
+    state "CLOSED" as CLOSED
+    state "CANDIDACY GATE" as CANDIDACY_GATE
+    state "ABANDONED" as ABANDONED
+    state "REJECTED" as REJECTED
+    state "CLOSED/REJETED" as CLOSED_REJETED
+
+    note right of ABANDONED
+        Transitions "Toutes" :
+        Permettent de rejeter
+        ou d'abandonner.
+    end note

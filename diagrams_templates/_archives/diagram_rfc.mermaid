@@ -1,0 +1,53 @@
+stateDiagram-v2
+    direction TB
+
+    %% Entry point
+    [*] --> DRAFT
+
+    %% Main Path
+    DRAFT --> SUBMITTED
+    SUBMITTED --> MACRO_STUDY
+    MACRO_STUDY --> BUSINESS_ANALYST
+    BUSINESS_ANALYST --> ACCEPTED
+    BUSINESS_ANALYST --> CANDIDACY_GATE
+    ACCEPTED --> A_PRIORISER
+
+    %% Branching Logic
+    A_PRIORISER --> READY
+    A_PRIORISER --> ADDED_IN_BACKLOG
+
+    %% Execution Loops
+    READY --> IN_PROGRESS: Start Work
+    IN_PROGRESS --> READY
+    IN_PROGRESS --> WAITING_FOR_CONFIRMATION
+    WAITING_FOR_CONFIRMATION --> IN_PROGRESS
+
+    ADDED_IN_BACKLOG --> IMPLEMENTATION_IN_PROGRESS
+    IMPLEMENTATION_IN_PROGRESS --> ADDED_IN_BACKLOG
+
+    %% Terminal / Side Branch
+    REJECTED --> CLOSED_REJETED
+
+    %% State Definitions with specific labels
+    state "MACRO-STUDY" as MACRO_STUDY
+    state "BUSINESS ANALYST" as BUSINESS_ANALYST
+    state "ACCEPTED" as ACCEPTED
+    state "À PRIORISER" as A_PRIORISER
+    state "READY" as READY
+    state "IN PROGRESS" as IN_PROGRESS
+    state "WAITING FOR CONFIRMATION" as WAITING_FOR_CONFIRMATION
+    state "ADDED IN BACKLOG" as ADDED_IN_BACKLOG
+    state "IMPLEMENTATION IN PROGRESS" as IMPLEMENTATION_IN_PROGRESS
+    state "CANDIDACY GATE" as CANDIDACY_GATE
+
+    state "ABANDONED" as ABANDONED
+    state "REJECTED" as REJECTED
+    state "CLOSED/REJETED" as CLOSED_REJETED
+
+    %% Annotation for "Toutes" (Global) transitions
+    note right of REJECTED
+        Transitions "Toutes":
+        Vers ABANDONED, REJECTED,
+        DRAFT, SUBMITTED,
+        MACRO-STUDY, ACCEPTED
+    end note

@@ -1,0 +1,38 @@
+stateDiagram-v2
+    direction TB
+
+    %% Entry
+    [*] --> OPEN : Create
+
+    %% Core Hub
+    OPEN --> ACCEPTED : Accept
+    OPEN --> INFORMATION_NEEDED : Information needed
+    OPEN --> IN_PROGRESS : Start progress
+    OPEN --> REJECTED : Reject
+    OPEN --> CLOSED : Close
+
+    %% Resolution Path
+    IN_PROGRESS --> SOLVED : Solve
+    SOLVED --> IN_PROGRESS : Need more work
+    SOLVED --> CLOSED : Close
+
+    %% Side Connections
+    REJECTED --> OPEN : Recall open
+    REJECTED --> SOLVED : Solve
+    CLOSED --> SOLVED : Solve
+
+    %% State Definitions
+    state "OPEN" as OPEN
+    state "ACCEPTED" as ACCEPTED
+    state "INFORMATION NEEDED" as INFORMATION_NEEDED
+    state "IN PROGRESS" as IN_PROGRESS
+    state "RESOLVED" as RESOLVED
+    state "REJECTED" as REJECTED
+    state "CLOSED" as CLOSED
+    state "SOLVED" as SOLVED
+
+    %% Floating State
+    note right of RESOLVED
+        Défini comme état isolé 
+        dans la source.
+    end note

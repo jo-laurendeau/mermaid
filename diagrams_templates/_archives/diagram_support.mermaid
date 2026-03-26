@@ -1,0 +1,34 @@
+stateDiagram-v2
+    direction TB
+
+    %% Entry point
+    [*] --> OPEN
+
+    %% Main Hub (OPEN)
+    OPEN --> ACCEPTED
+    OPEN --> INFORMATION_NEEDED
+    OPEN --> IN_PROGRESS
+    OPEN --> REJECTED
+    OPEN --> CLOSED
+
+    %% Resolution Paths
+    REJECTED --> SOLVED
+    CLOSED --> SOLVED
+    SOLVED --> IN_PROGRESS
+    IN_PROGRESS --> SOLVED
+
+    %% State Definitions
+    state "OPEN" as OPEN
+    state "ACCEPTED" as ACCEPTED
+    state "INFORMATION NEEDED" as INFORMATION_NEEDED
+    state "IN PROGRESS" as IN_PROGRESS
+    state "RESOLVED" as RESOLVED
+    state "REJECTED" as REJECTED
+    state "CLOSED" as CLOSED
+    state "SOLVED" as SOLVED
+
+    %% Note for isolated/global states
+    note right of RESOLVED
+        L'état RESOLVED apparaît 
+        isolé dans le diagramme source.
+    end note

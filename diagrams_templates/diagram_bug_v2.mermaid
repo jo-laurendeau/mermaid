@@ -1,0 +1,72 @@
+stateDiagram-v2
+    direction TB
+
+    %% Global Entry
+    [*] --> OPEN : Create
+
+    %% Phase: Entry & Analysis
+    OPEN --> ACCEPTED : Accept
+    OPEN --> REJECTED : Reject
+    OPEN --> INFORMATION_NEEDED : Wait for information
+    OPEN --> CLOSED_REJETED : Rejected and closed
+    
+    INFORMATION_NEEDED --> OPEN : Information sufficient / Re-open
+
+    %% Phase: Acceptance & Progress
+    ACCEPTED --> SUSPENDED : Suspend work
+    SUSPENDED --> ACCEPTED : Continue work
+    ACCEPTED --> IN_PROGRESS : Start progress
+    ACCEPTED --> WAITING_FOR_EXT_STAKEHOLDERS : Waiting for ext stakeholders
+    
+    WAITING_FOR_EXT_STAKEHOLDERS --> ACCEPTED : Waiting for ext stakeholders
+
+    %% Phase: Execution & Loops
+    IN_PROGRESS --> WAITING_FOR_REPRODUCTION : Test Failed
+    WAITING_FOR_REPRODUCTION --> IN_PROGRESS : Occurred again
+    IN_PROGRESS --> TO_DELIVER : To be delivered
+    
+    TO_DELIVER --> MERGE_REQUESTED : Merge Requested
+    MERGE_REQUESTED --> TO_DELIVER : To be delivered
+    MERGE_REQUESTED --> IN_PROGRESS : Back to in progress
+
+    %% Phase: Delivery & Validation
+    TO_DELIVER --> TEST_PRODUIT : submit to internal test
+    TEST_PRODUIT --> TO_BE_VALIDATED_BY_CODA : Submit to CODA test
+    TO_BE_VALIDATED_BY_CODA --> READY_FOR_RELEASE : Ready for release
+    
+    TO_BE_VALIDATED_BY_CODA --> TESTING_BLOCKED : Validation blocked
+    TESTING_BLOCKED --> TO_BE_VALIDATED_BY_CODA : Blocker raised...
+
+    READY_FOR_RELEASE --> BE_VALIDATED_BY_OWNER : To be validated by owner
+    BE_VALIDATED_BY_OWNER --> CLOSED : Test passed / Product defect validated
+
+    %% Termination Paths
+    REJECTED --> OPEN : Re-open
+    REJECTED --> CLOSED : Close
+    ABANDONNED --> OPEN : Back to Open
+
+    %% State Definitions
+    state "OPEN" as OPEN
+    state "ACCEPTED" as ACCEPTED
+    state "SUSPENDED" as SUSPENDED
+    state "WAITING FOR EXT STAKEHOLDERS" as WAITING_FOR_EXT_STAKEHOLDERS
+    state "IN PROGRESS" as IN_PROGRESS
+    state "WAITING FOR REPRODUCTION" as WAITING_FOR_REPRODUCTION
+    state "TO DELIVER" as TO_DELIVER
+    state "TEST PRODUIT" as TEST_PRODUIT
+    state "MERGE REQUESTED" as MERGE_REQUESTED
+    state "READY FOR RELEASE" as READY_FOR_RELEASE
+    state "TO BE VALIDATED BY CODA" as TO_BE_VALIDATED_BY_CODA
+    state "TESTING BLOCKED" as TESTING_BLOCKED
+    state "BE VALIDATED BY OWNER" as BE_VALIDATED_BY_OWNER
+    state "INFORMATION NEEDED" as INFORMATION_NEEDED
+    state "REJECTED" as REJECTED
+    state "ABANDONNED" as ABANDONNED
+    state "CLOSED" as CLOSED
+    state "CLOSED/REJETED" as CLOSED_REJETED
+
+    note right of ABANDONNED
+        Transitions "Toutes" :
+        Permettent de commenter
+        ou d'abandonner.
+    end note
