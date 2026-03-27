@@ -1426,18 +1426,18 @@ $defs: # JSON Schema definition (maybe we should move these to a separate file)
         default: -15
       noteMargin:
         type: number
-        default: 10
+        default: 2
       nodeSpacing:
         type: integer
         minimum: 0
-        default: 5
+        default: 2
       rankSpacing:
         type: integer
         minimum: 0
-        default: 5
+        default: 2
       forkWidth:
         type: number
-        default: 70
+        default: 30
       forkHeight:
         type: number
         default: 7
@@ -1457,7 +1457,7 @@ $defs: # JSON Schema definition (maybe we should move these to a separate file)
         default: 10
       labelHeight:
         type: number
-        default: 16
+        default: 10
       edgeLengthFactor:
         type: string
         default: '20'
@@ -2121,7 +2121,7 @@ $defs: # JSON Schema definition (maybe we should move these to a separate file)
         type: boolean # TODO, is this actually used here (it has no default value but was in types)
       diagramPadding:
         $ref: '#/$defs/ErDiagramConfig/properties/diagramPadding'
-        default: 8
+        default: 4
       htmlLabels:
         description: |
           **DEPRECATED: Use global `htmlLabels` instead.**
@@ -2179,7 +2179,7 @@ $defs: # JSON Schema definition (maybe we should move these to a separate file)
 
           **Only used in new experimental rendering.**
         type: number
-        default: 15
+        default: 8
       defaultRenderer:
         $ref: '#/$defs/StateDiagramConfig/properties/defaultRenderer'
         default: dagre-wrapper

@@ -71,8 +71,8 @@ export const draw = async function (
 
   // TODO: Should we move these two to baseConfig? These types are not there in StateConfig.
 
-  data4Layout.nodeSpacing = conf?.nodeSpacing ?? 5;
-  data4Layout.rankSpacing = conf?.rankSpacing ?? 5;
+  data4Layout.nodeSpacing = conf?.nodeSpacing ?? 2;
+  data4Layout.rankSpacing = conf?.rankSpacing ?? 2;
   data4Layout.markers = ['barb'];
   data4Layout.diagramId = id;
   // console.log('REF1:', data4Layout);
