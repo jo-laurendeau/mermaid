@@ -21,7 +21,9 @@
   Changing only layer 1 has **zero effect** because layer 2 overrides it. All 3 layers must be modified simultaneously.
 - **Dagre Fallback Chain Bug**: `dagre/index.js` uses `data4Layout.config?.nodeSpacing || data4Layout.config?.flowchart?.nodeSpacing || data4Layout.nodeSpacing`. Since `flowchart.nodeSpacing` defaults to **50**, it always resolves before the diagram-specific `data4Layout.nodeSpacing` (5px). Fix: reorder chain to prioritize `data4Layout.nodeSpacing` first.
 - **Subgraph Increments**: `dagre/index.js` adds `ranksep + 10` per nesting level. For 5+ phase diagrams this compounds to 50+px of wasted space. Set increment to 0.
-- **Note Groups**: `dataFetcher.ts` creates invisible `noteGroup` wrapper clusters with `padding: 16`. These cause notes to float far from their parent states. Reducing to 4px dramatically improves positioning.
+- **Note Groups**: `dataFetcher.ts` creates invisible `noteGroup` wrapper clusters with `padding: 16`. These cause notes to float far from their parent states. Reducing to 2px dramatically improves positioning.
+- **Cluster Title Gap**: `clusters.js` `roundedWithTitle` has a `- 6` gap between title and content (`innerHeight = height - bbox.height - 6`). Changing to `- 2` causes node/title collisions. The `- 6` is the minimum safe value.
+- **Dagre Topology Limits**: Note and terminal state positions (e.g., SOLVED) are determined by Dagre's rank assignment algorithm based on graph edges. These positions CANNOT be changed from the engine alone — they require diagram file modifications (edge reordering, direction hints).
 
 ## Export & Serialization
 - **XML Compliance**: Standalone SVG files require strict XML. Mermaid's HTML-based labels can generate unclosed `<br>` tags which break standalone viewers. Post-processing the serialized string with `.replace(/<br>/g, '<br/>')` is necessary.
