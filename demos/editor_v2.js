@@ -226,7 +226,7 @@ class MermaidEditorV2 {
         switch(type) {
             case 'unified_v4.1':
                 tpl = `stateDiagram-v2
-    direction LR
+    direction TB
 
     %% Global State Definitions
     state "OPEN" as OPEN
@@ -258,57 +258,83 @@ class MermaidEditorV2 {
 
     [*] --> PHASE_QUALIFICATION
 
-    state "Phase 1: Qualification" as PHASE_QUALIFICATION {
-        direction TB
+    state "Phase 1: Qualification & Analyse" as PHASE_QUALIFICATION {
         OPEN --> DRAFT : Create
         DRAFT --> TO_BE_PRIORITIZED : Submit for priorisation P0 to P5
         TO_BE_PRIORITIZED --> SUBMITTED : Ready for study
         SUBMITTED --> MACRO_STUDY : Start Macro-study
     }
+    note right of PHASE_QUALIFICATION 
+        - Responsible & Accountable of the success of this phase : Integrator or Operator
+        - Provide full data so Analyse & Solution design can be done
+        - RFC : full functional & non functional requirements
+        - Defect : full logs, screenshots, explanations, etc.
+        - Incident : full logs, screenshots, explanations, etc.
+        - Asign to the right sub-pilar / team => Operator, Editor, Integrator
+    end note
 
-    state "Phase 2: Analyse" as PHASE_STUDY {
-        direction TB
+    state "Phase 2: Analyse & Solution design" as PHASE_STUDY {
         MACRO_STUDY
     }
     
-    note right of PHASE_STUDY
-        Functional & Technical
-        feasibility & solution
+    note left of PHASE_STUDY 
+        - Responsible & Accountable of the success of this phase : Editor or Operator
+        - Functional & Technical feasibility & solution
+        - Impact on Product & Solution
+        - Effort estimation and financial proposal (charged to Operator or Integrator or Editor or mixte)
+        - Preconise delivery option: RELEASE or HOTFIX
     end note
 
     state "Phase 3: Priorisation" as PHASE_PRIORITISATION {
-        direction TB
         BACKLOG --> WAITING_FOR_STAKEHOLDERS : Request decision
         WAITING_FOR_STAKEHOLDERS --> PRIOTIZED_BACKLOG : Prioritized
         PRIOTIZED_BACKLOG --> WAITING_FOR_STAKEHOLDERS : Repriorization
     }
 
-    state "Phase 4: Construction" as PHASE_BUILD {
-        direction TB
+    note left of PHASE_PRIORITISATION
+        Decision Gate by STAKEHOLDER : Manco OI
+        - Accept : Prioritize (P0 to P5) & RELEASE or HOTFIX & Validate the budget and who pays.
+        - Refuse
+        - Abandon
+        - Suspend in progress tasks
+        - Restart in progress tasks
+    end note
+
+    state "Phase 4: Build & Quality check" as PHASE_BUILD {
         IN_PROGRESS --> CODE_REVIEW : Submit to review
         CODE_REVIEW --> IN_PROGRESS : Back to in progress
         IN_PROGRESS --> SUSPENDED : Suspend work
-        SUSPENDED --> IN_PROGRESS : Continue work
+        SUSPENDED --> IN_PROGRESS : Restart work
         CODE_REVIEW --> FUNCTIONAL_REVIEW : Submit to review
         FUNCTIONAL_REVIEW --> IN_PROGRESS : Back to in progress
         FUNCTIONAL_REVIEW --> READY_FOR_RELEASE : Normal flow
         FUNCTIONAL_REVIEW --> READY_FOR_HOTFIX : Hotfix requested
     }
 
-    state "Phase 5: Validation" as PHASE_FINAL_VALIDATION {
-        direction TB
+    note left of PHASE_BUILD
+        - Responsible & Accountable of the success of this phase : Editor or Integrator or Operator
+        - Execute decision of previous phase
+    end note
+
+    state "Phase 5: Final validation & Delivery" as PHASE_FINAL_VALIDATION {
         TO_INTEGRATE --> TO_BE_VALIDATED_BY_OWNER : Integration success
         TO_BE_VALIDATED_BY_OWNER --> TO_DELIVER : Validate
         TO_DELIVER --> DELIVERED_IN_ACCEPTANCE : Delivered in acceptance
         DELIVERED_IN_ACCEPTANCE --> ACCEPTANCE_VALIDATED : Validate in acceptance
+        DELIVERED_IN_ACCEPTANCE --> TO_DELIVER : Solution doesn't work in Acceptance
         ACCEPTANCE_VALIDATED --> TO_DELIVER_IN_PROD : prepare production delivery
         TO_DELIVER_IN_PROD --> DELIVERED_IN_PROD : delivered in production
         DELIVERED_IN_PROD --> PRODUCTION_VALIDATED : Validate in production
+        DELIVERED_IN_PROD --> TO_DELIVER_IN_PROD : Solution doesn't work in Production
         PRODUCTION_VALIDATED --> SOLVED : Solution confirmed
     }
 
+    note left of PHASE_FINAL_VALIDATION 
+        - Responsible & Accountable of the success of this phase : ticket creator (Integrator of Operator)
+        - Validate and deliver
+    end note
+
     state "End" as END {
-        direction TB
         REJECTED --> CLOSED
         ABANDONNED --> CLOSED
         SOLVED --> CLOSED
@@ -330,8 +356,8 @@ class MermaidEditorV2 {
     READY_FOR_HOTFIX --> TO_INTEGRATE : Hotfix done
     
     TO_BE_VALIDATED_BY_OWNER --> IN_PROGRESS : Solution doesn't work
-    DELIVERED_IN_ACCEPTANCE --> IN_PROGRESS : Acceptance refused
-    DELIVERED_IN_PROD --> IN_PROGRESS : Refused in Production
+    DELIVERED_IN_ACCEPTANCE --> IN_PROGRESS : Solution doesn't work in Acceptance
+    DELIVERED_IN_PROD --> IN_PROGRESS : Solution doesn't work in Production
 
     CLOSED --> [*]`;
                 break;

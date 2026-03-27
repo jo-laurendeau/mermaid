@@ -78,7 +78,7 @@ const recursiveRender = async (_elem, graph, diagramType, id, parentCluster, sit
         const { ranksep, nodesep } = graph.graph();
         node.graph.setGraph({
           ...node.graph.graph(),
-          ranksep: ranksep + 25,
+          ranksep: ranksep,
           nodesep,
         });
 
@@ -276,15 +276,17 @@ export const render = async (data4Layout, svg) => {
     .setGraph({
       rankdir: data4Layout.direction,
       nodesep:
+        data4Layout.nodeSpacing ||
         data4Layout.config?.nodeSpacing ||
         data4Layout.config?.flowchart?.nodeSpacing ||
-        data4Layout.nodeSpacing,
+        50,
       ranksep:
+        data4Layout.rankSpacing ||
         data4Layout.config?.rankSpacing ||
         data4Layout.config?.flowchart?.rankSpacing ||
-        data4Layout.rankSpacing,
-      marginx: 8,
-      marginy: 8,
+        50,
+      marginx: 0,
+      marginy: 0,
     })
     .setDefaultEdgeLabel(function () {
       return {};

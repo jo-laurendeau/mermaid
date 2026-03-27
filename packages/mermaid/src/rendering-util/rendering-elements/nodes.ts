@@ -78,7 +78,7 @@ export const positionNode = (node: ReturnType<graphlib.Graph['node']>) => {
     node,
     'translate(' + (node.x - node.width / 2 - 5) + ', ' + node.width / 2 + ')'
   );
-  const padding = 8;
+  const padding = 0;
   const diff = node.diff || 0;
   if (node.clusterNode) {
     el.attr(

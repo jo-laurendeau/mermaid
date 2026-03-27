@@ -287,7 +287,7 @@ export const dataFetcher = (
       domId: stateDomId(itemId, graphItemCount),
       type: newNode.type,
       isGroup: newNode.type === 'group',
-      padding: 8,
+      padding: 2,
       rx: 10,
       ry: 10,
       look,
@@ -336,7 +336,7 @@ export const dataFetcher = (
         domId: stateDomId(itemId, graphItemCount, PARENT),
         type: 'group',
         isGroup: true,
-        padding: 16, //getConfig().flowchart.padding
+        padding: 4, //getConfig().flowchart.padding
         look,
         position: parsedItem.note.position,
       };

@@ -14,13 +14,19 @@
 - **State Claims**: Avoid referencing or defining the same state inside multiple `state` containers (Phases/Substates). Mermaid cannot assign multiple parents to a node, which results in "mangled rendering" (overlapping or invisible boundary boxes).
 - **Layout Strategies**: Define a state entry in its primary phase and keep boundary-crossing transitions in a global scope to maintain clean phase separation.
 - **Nested Directions**: `stateDiagram-v2` does not support mixed directions (e.g., global LR with internal TB). For such hybrid layouts, use `flowchart` with `subgraph` and internal `direction` statements.
+- **Engine Compaction**: Mermaid state diagrams have a **3-layer spacing hierarchy**:
+  1. `config.schema.yaml` → default values (least priority)
+  2. `stateRenderer-v3-unified.ts` → `conf?.nodeSpacing ?? 20` **overrides** schema defaults
+  3. `dataFetcher.ts` → `padding: 8` per node, `padding: 16` per note group → inflates every cluster bbox
+  Changing only layer 1 has **zero effect** because layer 2 overrides it. All 3 layers must be modified simultaneously.
+- **Dagre Fallback Chain Bug**: `dagre/index.js` uses `data4Layout.config?.nodeSpacing || data4Layout.config?.flowchart?.nodeSpacing || data4Layout.nodeSpacing`. Since `flowchart.nodeSpacing` defaults to **50**, it always resolves before the diagram-specific `data4Layout.nodeSpacing` (5px). Fix: reorder chain to prioritize `data4Layout.nodeSpacing` first.
+- **Subgraph Increments**: `dagre/index.js` adds `ranksep + 10` per nesting level. For 5+ phase diagrams this compounds to 50+px of wasted space. Set increment to 0.
+- **Note Groups**: `dataFetcher.ts` creates invisible `noteGroup` wrapper clusters with `padding: 16`. These cause notes to float far from their parent states. Reducing to 4px dramatically improves positioning.
 
 ## Export & Serialization
 - **XML Compliance**: Standalone SVG files require strict XML. Mermaid's HTML-based labels can generate unclosed `<br>` tags which break standalone viewers. Post-processing the serialized string with `.replace(/<br>/g, '<br/>')` is necessary.
 - **Theme Isolation**: UI-level CSS filters (like `invert()`) are not captured by SVG serialization. High-quality exports should temporarily switch the Mermaid theme (e.g., to `default` or `light`) and disable page filters during the capture process to ensure correct contrast.
+- **Clipping Prevention**: Use `getBBox()` to calculate the real dimensions of the SVG before PDF/PNG generation. Relying on container width/height often clips notes or wide labels that extend beyond the main graph bounds.
 
-## Web Development Tools
-- **Direct Save Utility**: Using `window.showOpenFilePicker` and persistent `fileHandle` references in the browser (Mermaid Editor V2) allows for a "direct save" Experience, enabling local file overwriting without constant prompts.
-
-## Project Setup
-- [2026-03-24] Initialized the `.agents` orchestration system from the `SmartGroceryList` template.
+## Project Maintenance
+- [2026-03-27] Confirmed that `stateDiagram-v2` delegates to the unified `render-v3` but lacks explicit ELK activation in its detector, unlike `flowchart-v2`.

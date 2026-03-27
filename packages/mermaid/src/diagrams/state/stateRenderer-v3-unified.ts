@@ -16,16 +16,20 @@ import { CSS_DIAGRAM, DEFAULT_NESTED_DOC_DIR } from './stateCommon.js';
  * @param defaultDir - the direction to use if none is found
  * @returns The direction to use
  */
-export const getDir = (parsedItem: any, defaultDir = DEFAULT_NESTED_DOC_DIR) => {
-  if (!parsedItem.doc) {
+export const getDir = (
+  parsedItem: Record<string, unknown>,
+  defaultDir = DEFAULT_NESTED_DOC_DIR
+) => {
+  const doc = parsedItem.doc as Record<string, unknown>[] | undefined;
+  if (!doc) {
     return defaultDir;
   }
 
   let dir = defaultDir;
 
-  for (const parsedItemDoc of parsedItem.doc) {
+  for (const parsedItemDoc of doc) {
     if (parsedItemDoc.stmt === 'dir') {
-      dir = parsedItemDoc.value;
+      dir = parsedItemDoc.value as string;
     }
   }
 
@@ -34,40 +38,46 @@ export const getDir = (parsedItem: any, defaultDir = DEFAULT_NESTED_DOC_DIR) => 
 
 export const getClasses = function (
   text: string,
-  diagramObj: any
+  diagramObj: Record<string, unknown>
 ): Map<string, DiagramStyleClassDef> {
-  return diagramObj.db.getClasses();
+  return (diagramObj.db as Record<string, any>).getClasses();
 };
 
-export const draw = async function (text: string, id: string, _version: string, diag: any) {
+export const draw = async function (
+  text: string,
+  id: string,
+  _version: string,
+  diag: Record<string, unknown>
+) {
+  const db = diag.db as Record<string, any>;
   log.info('REF0:');
   log.info('Drawing state diagram (v2)', id);
   const { securityLevel, state: conf, layout } = getConfig();
   // Extracting the data from the parsed structure into a more usable form
   // Not related to the refactoring, but this is the first step in the rendering process
-  diag.db.extract(diag.db.getRootDocV2());
+  db.extract(db.getRootDocV2());
 
   //const DIR = getDir(diag.db.getRootDocV2());
 
   // The getData method provided in all supported diagrams is used to extract the data from the parsed structure
   // into the Layout data format
-  const data4Layout = diag.db.getData() as LayoutData;
+  const data4Layout = db.getData() as LayoutData;
 
   // Create the root SVG - the element is the div containing the SVG element
   const svg = getDiagramElement(id, securityLevel);
 
-  data4Layout.type = diag.type;
+  data4Layout.type = diag.type as string;
   data4Layout.layoutAlgorithm = layout;
 
   // TODO: Should we move these two to baseConfig? These types are not there in StateConfig.
 
-  data4Layout.nodeSpacing = conf?.nodeSpacing || 50;
-  data4Layout.rankSpacing = conf?.rankSpacing || 50;
+  data4Layout.nodeSpacing = conf?.nodeSpacing ?? 5;
+  data4Layout.rankSpacing = conf?.rankSpacing ?? 5;
   data4Layout.markers = ['barb'];
   data4Layout.diagramId = id;
   // console.log('REF1:', data4Layout);
   await render(data4Layout, svg);
-  const padding = 8;
+  const padding = 2;
 
   // Inject clickable links after nodes are rendered
   try {

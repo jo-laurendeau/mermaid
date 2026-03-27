@@ -348,10 +348,10 @@ export const extractor = (graph, depth) => {
       })
         .setGraph({
           rankdir: dir,
-          nodesep: 50,
-          ranksep: 50,
-          marginx: 8,
-          marginy: 8,
+          nodesep: graphSettings.nodesep ?? 5,
+          ranksep: graphSettings.ranksep ?? 5,
+          marginx: 0,
+          marginy: 0,
         })
         .setDefaultEdgeLabel(function () {
           return {};

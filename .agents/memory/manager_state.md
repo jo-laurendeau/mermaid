@@ -1,11 +1,24 @@
-# Manager State
+# Manager State - Mermaid Layout Optimization
 
-Current Phase: Phase 3 (Quality)
-Last Update: 2026-03-24
+## Current Status
+- **Phase**: Research & Discovery
+- **Active Task**: Identifying layout configuration constants in the core engine.
+- **Workflow Step**: Step 1 (Task Initialization)
 
-### Activity Log
-- [2026-03-24] Started "Upgrade Visual WYSIWYG Editor" task.
-- [2026-03-24] Phase 0-2 complete. Upgraded `visual.html` with full feature set.
-- [2026-03-25] Pivoted to React Flow V2.
-- [2026-03-25] Restored arrowheads and implemented two-pass parser.
-- [2026-03-25] Initiated final end-to-end verification (Simple vs Complex).
+## Task Breakdown
+- [ ] Research: Locate `stateDiagram-v2` and `dagre`/`elk` layout logic in the core.
+- [ ] Analysis: Identify excessive whitespace causes (nodeSpacing, rankSpacing, padding).
+- [ ] Implementation: Propose and test more compact default constants.
+- [ ] Verification: Compare A4 landscape fit before/after.
+
+## Delegation Log
+- Functional Expert: Pending
+- Architect: Pending
+- Developer: Pending
+- Quality: Pending
+- Review: Pending
+- Documentation: Pending
+
+## Technical Debt / TODOs
+- [x] Push editor_v2 refinements.
+- [ ] Investigate `mermaid-layout-elk` integration status.

@@ -1417,7 +1417,7 @@ $defs: # JSON Schema definition (maybe we should move these to a separate file)
         default: 5
       padding:
         type: number
-        default: 8
+        default: 2
       textHeight:
         type: number
         default: 10
@@ -1430,13 +1430,11 @@ $defs: # JSON Schema definition (maybe we should move these to a separate file)
       nodeSpacing:
         type: integer
         minimum: 0
-        # should the default value be 50?
-        # see https://github.com/mermaid-js/mermaid/blob/7647ae317a7b2130e32777248d25a9c4d24b8f9f/packages/mermaid/src/diagrams/class/classRenderer-v2.ts#L258
+        default: 5
       rankSpacing:
         type: integer
         minimum: 0
-        # should the default value be 50?
-        # see https://github.com/mermaid-js/mermaid/blob/7647ae317a7b2130e32777248d25a9c4d24b8f9f/packages/mermaid/src/diagrams/class/classRenderer-v2.ts#L259
+        default: 5
       forkWidth:
         type: number
         default: 70
@@ -1456,7 +1454,7 @@ $defs: # JSON Schema definition (maybe we should move these to a separate file)
         default: 5.02
       fontSize:
         type: number
-        default: 24
+        default: 10
       labelHeight:
         type: number
         default: 16
