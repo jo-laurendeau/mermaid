@@ -91,6 +91,10 @@
   },
   "devDependencies": {
     "@adobe/jsonschema2md": "^8.0.8",
+    "@antv/layout": "1.2.14-beta.8",
+    "@antv/x6": "^3.1.7",
+    "@antv/x6-plugin-export": "^2.1.6",
+    "@antv/x6-plugin-selection": "^2.2.2",
     "@iconify/types": "^2.0.0",
     "@types/cytoscape": "^3.21.9",
     "@types/cytoscape-fcose": "^2.2.5",

@@ -14,6 +14,7 @@
         </div>
         <div class="actions">
             <button onclick="window.app.toggleTheme()">🌓 Theme</button>
+            <button onclick="window.app.openFile()" class="secondary">📂 Open</button>
             <button onclick="window.app.saveToFile()" class="secondary">💾 Save</button>
             <button onclick="window.app.downloadSVG()">📥 SVG</button>
             <button onclick="window.app.downloadPNG()" class="primary">📸 Export PNG</button>
@@ -41,16 +42,17 @@
             <div class="tool-icon" id="templates-toggle" title="Templates Library">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                 <div id="templates-menu" class="dropdown-menu">
+                    <div class="menu-label">V4 PREMIUM TEMPLATES</div>
+                    <div class="menu-item" onclick="window.app.loadTemplate('unified_v4')">Unified V4 (Fixed Layout)</div>
+                    <div class="menu-divider"></div>
+                    <div class="menu-label">V3 PREMIUM TEMPLATES</div>
+                    <div class="menu-item" onclick="window.app.loadTemplate('unified_v3')">Unified V3 (New Flow)</div>
+                    <div class="menu-divider"></div>
                     <div class="menu-label">V2 PREMIUM TEMPLATES</div>
                     <div class="menu-item" onclick="window.app.loadTemplate('unified_v2')">Unified V2 (Factorized)</div>
                     <div class="menu-item" onclick="window.app.loadTemplate('rfc_v2')">RFC V2 (Detailed)</div>
                     <div class="menu-item" onclick="window.app.loadTemplate('bug_v2')">Anomalie V2 (Detailed)</div>
                     <div class="menu-item" onclick="window.app.loadTemplate('incident_v2')">Incident V2 (Detailed)</div>
-                    <div class="menu-divider"></div>
-                    <div class="menu-label">CLASSIC TEMPLATES</div>
-                    <div class="menu-item" onclick="window.app.loadTemplate('rfc')">RFC V1</div>
-                    <div class="menu-item" onclick="window.app.loadTemplate('incident')">Incident V1</div>
-                    <div class="menu-item" onclick="window.app.loadTemplate('anomaly')">Anomalie V1</div>
                 </div>
             </div>
         </div>

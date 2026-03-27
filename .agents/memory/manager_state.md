@@ -3,6 +3,9 @@
 Current Phase: Phase 3 (Quality)
 Last Update: 2026-03-24
 
-## Activity Log
+### Activity Log
 - [2026-03-24] Started "Upgrade Visual WYSIWYG Editor" task.
 - [2026-03-24] Phase 0-2 complete. Upgraded `visual.html` with full feature set.
+- [2026-03-25] Pivoted to React Flow V2.
+- [2026-03-25] Restored arrowheads and implemented two-pass parser.
+- [2026-03-25] Initiated final end-to-end verification (Simple vs Complex).

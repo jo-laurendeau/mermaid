@@ -1,0 +1,80 @@
+stateDiagram-v2
+    direction TB
+    %% Global State Definitions
+    state "OPEN" as OPEN
+    state "DRAFT" as DRAFT
+    state "TO BE PRIORITIZED" as TO_BE_PRIORITIZED
+    state "SUBMITTED" as SUBMITTED
+    state "MACRO-STUDY" as MACRO_STUDY
+    state "BACKLOG" as BACKLOG
+    state "WAITING FOR STAKEHOLDERS" as WAITING_FOR_STAKEHOLDERS
+    state "PRIOTIZED BACKLOG" as PRIOTIZED_BACKLOG
+    state "IN PROGRESS" as IN_PROGRESS
+    state "SUSPENDED" as SUSPENDED
+    state "CODE REVIEW" as CODE_REVIEW
+    state "TO DELIVER" as TO_DELIVER
+    state "FUNCTIONAL REVIEW" as FUNCTIONAL_REVIEW
+    state "READY FOR HOTFIX" as READY_FOR_HOTFIX
+    state "READY FOR RELEASE" as READY_FOR_RELEASE
+    state "TO BE VALIDATED BY OWNER" as TO_BE_VALIDATED_BY_OWNER
+    state "ABANDONNED" as ABANDONNED
+    state "SOLVED" as SOLVED
+    state "REJECTED" as REJECTED
+    state "CLOSED" as CLOSED
+
+    [*] --> PHASE_QUALIFICATION 
+    state "Phase 1: Qualification & Analyse" as PHASE_QUALIFICATION {
+        OPEN --> DRAFT : Create
+        DRAFT --> TO_BE_PRIORITIZED : Submit for priorisation P0 to P5
+        TO_BE_PRIORITIZED --> SUBMITTED : Ready for study
+        SUBMITTED --> MACRO_STUDY : Start Macro-study
+    }
+    state "Phase 2: Analyse & Solution design" as PHASE_STUDY {
+        MACRO_STUDY
+    }
+    %% Transitions transverses
+    PHASE_STUDY --> BACKLOG: Accepted
+    PHASE_STUDY --> ABANDONNED : Abandonned
+    PHASE_STUDY --> REJECTED : Refused
+    state "Phase 3: Priorisation" as PHASE_PRIORITISATION {
+        BACKLOG --> WAITING_FOR_STAKEHOLDERS : Request decision
+        WAITING_FOR_STAKEHOLDERS --> PRIOTIZED_BACKLOG : Prioritized
+        PRIOTIZED_BACKLOG --> WAITING_FOR_STAKEHOLDERS : Repriorization
+        REJECTED --> WAITING_FOR_STAKEHOLDERS : escalation, request decision
+        ABANDONNED --> WAITING_FOR_STAKEHOLDERS : escalation, request decision
+        PRIOTIZED_BACKLOG --> IN_PROGRESS
+    }
+    %% Transitions transverses
+    PHASE_PRIORITISATION --> IN_PROGRESS : Start work
+    WAITING_FOR_STAKEHOLDERS --> REJECTED : Refused
+    WAITING_FOR_STAKEHOLDERS --> ABANDONNED : Abandonned
+    state "Phase 4: Build & Quality check" as PHASE_BUILD {
+        IN_PROGRESS --> CODE_REVIEW : Submit to review
+        CODE_REVIEW --> IN_PROGRESS : Back to in progress
+        IN_PROGRESS --> SUSPENDED : Suspend work
+        SUSPENDED --> IN_PROGRESS : Continue work
+        CODE_REVIEW --> FUNCTIONAL_REVIEW : Submit to review
+        FUNCTIONAL_REVIEW --> IN_PROGRESS : Back to in progress
+        FUNCTIONAL_REVIEW --> READY_FOR_RELEASE : Normal path
+        FUNCTIONAL_REVIEW --> READY_FOR_HOTFIX : Hotfix requested
+    }
+    %% Transitions transverses
+    READY_FOR_RELEASE --> TO_BE_VALIDATED_BY_OWNER : Normal path
+    READY_FOR_HOTFIX --> TO_BE_VALIDATED_BY_OWNER : Stakeholder Hotfix
+    state "Phase 5: Final validation & Delivery" as PHASE_FINAL_VALIDATION {
+        TO_BE_VALIDATED_BY_OWNER --> TO_DELIVER : Validate
+        TO_DELIVER --> DELIVERED_IN_ACCEPTANCE  : delivered in acceptance
+        DELIVERED_IN_ACCEPTANCE  --> ACCEPTANCE_VALIDATED  : Validate in acceptance
+        ACCEPTANCE_VALIDATED --> TO_DELIVER_IN_PROD : prepare production delivery
+        TO_DELIVER_IN_PROD --> DELIVERED_IN_PROD : delivered in production
+        DELIVERED_IN_PROD --> PRODUCTION_VALIDATED : Validate in production
+        PRODUCTION_VALIDATED --> SOLVED : Solution confirmed
+    }
+    %% Transitions transverses
+    TO_BE_VALIDATED_BY_OWNER --> IN_PROGRESS : Solution doesn't work
+    state "End" as END {
+        REJECTED --> CLOSED
+        ABANDONNED --> CLOSED
+        SOLVED --> CLOSED
+    }
+        CLOSED --> [*]

@@ -80,6 +80,18 @@ class MermaidEditorV2 {
             }
         });
 
+        // Global shortcuts for power users
+        window.addEventListener('keydown', (e) => {
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                this.saveToFile();
+            }
+            if (e.ctrlKey && e.key === 'o') {
+                e.preventDefault();
+                this.openFile();
+            }
+        });
+
         // Initial render
         await this.updatePreview();
         this.updateLineNumbers();
@@ -197,6 +209,183 @@ class MermaidEditorV2 {
     loadTemplate(type) {
         let tpl = "";
         switch(type) {
+            case 'unified_v4':
+                tpl = `stateDiagram-v2
+    direction TB
+
+    %% Global State Definitions
+    state "OPEN" as OPEN
+    state "DRAFT" as DRAFT
+    state "TO BE PRIORITIZED" as TO_BE_PRIORITIZED
+    state "SUBMITTED" as SUBMITTED
+    state "MACRO-STUDY" as MACRO_STUDY
+    state "BACKLOG" as BACKLOG
+    state "WAITING FOR STAKEHOLDERS" as WAITING_FOR_STAKEHOLDERS
+    state "PRIOTIZED BACKLOG" as PRIOTIZED_BACKLOG
+    state "IN PROGRESS" as IN_PROGRESS
+    state "SUSPENDED" as SUSPENDED
+    state "CODE REVIEW" as CODE_REVIEW
+    state "TO DELIVER" as TO_DELIVER
+    state "FUNCTIONAL REVIEW" as FUNCTIONAL_REVIEW
+    state "READY FOR HOTFIX" as READY_FOR_HOTFIX
+    state "READY FOR RELEASE" as READY_FOR_RELEASE
+    state "TO BE VALIDATED BY OWNER" as TO_BE_VALIDATED_BY_OWNER
+    state "ABANDONNED" as ABANDONNED
+    state "SOLVED" as SOLVED
+    state "REJECTED" as REJECTED
+    state "CLOSED" as CLOSED
+
+    [*] --> PHASE_QUALIFICATION
+
+    state "Phase 1: Qualification & Analyse" as PHASE_QUALIFICATION {
+        OPEN --> DRAFT : Create
+        DRAFT --> TO_BE_PRIORITIZED : Submit for priorisation P0 to P5
+        TO_BE_PRIORITIZED --> SUBMITTED : Ready for study
+        SUBMITTED --> MACRO_STUDY : Start Macro-study
+    }
+
+    state "Phase 2: Analyse & Solution design" as PHASE_STUDY {
+        MACRO_STUDY
+    }
+    %% Transitions transverses
+    PHASE_STUDY --> BACKLOG: Accepted
+    PHASE_STUDY --> ABANDONNED : Abandonned
+    PHASE_STUDY --> REJECTED : Refused
+
+    state "Phase 3: Priorisation" as PHASE_PRIORITISATION {
+        BACKLOG --> WAITING_FOR_STAKEHOLDERS : Request decision
+        WAITING_FOR_STAKEHOLDERS --> PRIOTIZED_BACKLOG : Prioritized
+        PRIOTIZED_BACKLOG --> WAITING_FOR_STAKEHOLDERS : Repriorization
+    }
+    %% Transitions transverses
+    PHASE_PRIORITISATION --> IN_PROGRESS : Start work
+    WAITING_FOR_STAKEHOLDERS --> REJECTED : Refused
+    WAITING_FOR_STAKEHOLDERS --> ABANDONNED : Abandonned
+
+    state "Phase 4: Build & Quality check" as PHASE_BUILD {
+        IN_PROGRESS --> CODE_REVIEW : Submit to review
+        CODE_REVIEW --> IN_PROGRESS : Back to in progress
+        IN_PROGRESS --> SUSPENDED : Suspend work
+        SUSPENDED --> IN_PROGRESS : Continue work
+        CODE_REVIEW --> FUNCTIONAL_REVIEW : Submit to review
+        FUNCTIONAL_REVIEW --> IN_PROGRESS : Back to in progress
+        FUNCTIONAL_REVIEW --> READY_FOR_RELEASE : Normal path
+        FUNCTIONAL_REVIEW --> READY_FOR_HOTFIX : Hotfix requested
+    }
+    %% Transitions transverses
+    READY_FOR_RELEASE --> TO_BE_VALIDATED_BY_OWNER : Normal path
+    READY_FOR_HOTFIX --> TO_BE_VALIDATED_BY_OWNER : Stakeholder Hotfix
+
+    state "Phase 5: Final validation & Delivery" as PHASE_FINAL_VALIDATION {
+        TO_BE_VALIDATED_BY_OWNER --> TO_DELIVER : Validate
+        TO_DELIVER --> SOLVED : Solution confirmed
+    }
+    %% Transitions transverses
+    TO_BE_VALIDATED_BY_OWNER --> IN_PROGRESS : Solution doesn't work
+
+    state "End" as END {
+        REJECTED
+        ABANDONNED
+        SOLVED
+    }
+    %% Clôture globale
+    END --> CLOSED
+    CLOSED --> [*]`;
+                break;
+            case 'unified_v3':
+                tpl = `stateDiagram-v2
+    direction TB
+
+    %% Global State Definitions
+    state "OPEN" as OPEN
+    state "DRAFT" as DRAFT
+    state "TO BE PRIORITIZED" as TO_BE_PRIORITIZED
+    state "SUBMITTED" as SUBMITTED
+    state "MACRO-STUDY" as MACRO_STUDY
+    state "ACCEPTED" as ACCEPTED
+    state "BACKLOG" as BACKLOG
+    state "WAITING FOR STAKEHOLDERS" as WAITING_FOR_STAKEHOLDERS
+    state "PRIOTIZED BACKLOG" as PRIOTIZED_BACKLOG
+    state "IN PROGRESS" as IN_PROGRESS
+    state "SUSPENDED" as SUSPENDED
+    state "CODE REVIEW" as CODE_REVIEW
+    state "WAITING FOR REPRODUCTION" as WAITING_FOR_REPRODUCTION
+    state "TO DELIVER" as TO_DELIVER
+    state "FUNCTIONAL REVIEW" as FUNCTIONAL_REVIEW
+    state "TESTING BLOCKED" as TESTING_BLOCKED
+    state "CHECK DOD" as CHECK_DOD
+    state "READY FOR HOTFIX" as READY_FOR_HOTFIX
+    state "READY FOR RELEASE" as READY_FOR_RELEASE
+    state "TO BE VALIDATED BY OWNER" as TO_BE_VALIDATED_BY_OWNER
+    state "ABANDONNED" as ABANDONNED
+    state "SOLVED" as SOLVED
+    state "REJECTED" as REJECTED
+    state "CLOSED" as CLOSED
+
+    [*] --> PHASE_QUALIFICATION
+
+    state "Phase 1: Qualification & Analyse" as PHASE_QUALIFICATION {
+        OPEN --> DRAFT : Create
+        DRAFT --> TO_BE_PRIORITIZED : Submit for triage
+        TO_BE_PRIORITIZED --> SUBMITTED : Ready for study
+        SUBMITTED --> MACRO_STUDY : Start Macro-study
+    }
+
+    PHASE_QUALIFICATION --> PHASE_DECISION
+
+    state "Phase 2: Décision (Gates)" as PHASE_DECISION {
+        MACRO_STUDY --> ACCEPTED : Accepté
+        MACRO_STUDY --> REJECTED : Refusé
+        MACRO_STUDY --> ABANDONNED : Abandonné
+    }
+
+    PHASE_DECISION --> PHASE_PRIORITISATION
+
+    state "Phase 3: Priorisation & Backlog" as PHASE_PRIORITISATION {
+        ACCEPTED --> BACKLOG : En attente
+        BACKLOG --> WAITING_FOR_STAKEHOLDERS : Request feedback
+        WAITING_FOR_STAKEHOLDERS --> PRIOTIZED_BACKLOG : Prioritized
+        PRIOTIZED_BACKLOG --> IN_PROGRESS : Start work
+        
+        BACKLOG --> IN_PROGRESS : Head of OI escalation
+        BACKLOG --> IN_PROGRESS : PRIOTIZED BACKLOG is empty
+    }
+
+    PHASE_PRIORITISATION --> PHASE_BUILD
+
+    state "Phase 4: Construction (Build)" as PHASE_BUILD {
+        IN_PROGRESS --> CODE_REVIEW : Submit to review
+        CODE_REVIEW --> IN_PROGRESS : Back to in progress
+        IN_PROGRESS --> WAITING_FOR_REPRODUCTION : Test Failed
+        WAITING_FOR_REPRODUCTION --> IN_PROGRESS : Occurred again
+        IN_PROGRESS --> SUSPENDED : Suspend work
+        SUSPENDED --> IN_PROGRESS : Continue work
+    }
+
+    PHASE_BUILD --> PHASE_QUALITY
+
+    state "Phase 5: Qualité & Vérification" as PHASE_QUALITY {
+        TO_DELIVER --> FUNCTIONAL_REVIEW : internal test
+        FUNCTIONAL_REVIEW --> TESTING_BLOCKED : Blocker raised
+        TESTING_BLOCKED --> FUNCTIONAL_REVIEW : Blocker fixed
+        FUNCTIONAL_REVIEW --> CHECK_DOD : Validate DOD
+        CHECK_DOD --> READY_FOR_RELEASE : Normal path
+        CHECK_DOD --> READY_FOR_HOTFIX : if HOTFIX delivery decided by STAKEHOLDERS
+        READY_FOR_HOTFIX --> READY_FOR_RELEASE : Hotfix ready
+    }
+
+    PHASE_QUALITY --> PHASE_FINAL_VALIDATION
+
+    state "Phase 6: Validation & Clôture" as PHASE_FINAL_VALIDATION {
+        READY_FOR_RELEASE --> TO_BE_VALIDATED_BY_OWNER : Validate
+        TO_BE_VALIDATED_BY_OWNER --> SOLVED : Confirmed
+        SOLVED --> CLOSED
+        REJECTED --> CLOSED
+        ABANDONNED --> CLOSED
+    }
+
+    PHASE_FINAL_VALIDATION --> [*]`;
+                break;
             case 'unified_v2':
                 tpl = `stateDiagram-v2
     direction TB
@@ -454,6 +643,27 @@ class MermaidEditorV2 {
         img.src = image64;
     }
 
+    async openFile() {
+        try {
+            const [handle] = await window.showOpenFilePicker({
+                types: [{
+                    description: 'Mermaid Diagram',
+                    accept: { 'text/plain': ['.mermaid'] },
+                }],
+                multiple: false
+            });
+            this.fileHandle = handle;
+            const file = await this.fileHandle.getFile();
+            this.editor.value = await file.text();
+            this.onInputChange();
+            this.updateCursorPos();
+            
+            this.showFeedback(`Loaded: ${file.name}`);
+        } catch (err) {
+            console.error('Open canceled or failed', err);
+        }
+    }
+
     async saveToFile() {
         try {
             if (!this.fileHandle) {
@@ -468,9 +678,34 @@ class MermaidEditorV2 {
             const writable = await this.fileHandle.createWritable();
             await writable.write(this.editor.value);
             await writable.close();
+            
+            const file = await this.fileHandle.getFile();
+            this.showFeedback(`Saved to ${file.name}`);
         } catch (err) {
             console.error('Save canceled or failed', err);
         }
+    }
+
+    showFeedback(message) {
+        const originalText = this.errorBadge.innerText;
+        this.errorBadge.innerText = message;
+        this.errorBadge.style.display = 'flex';
+        this.errorBadge.style.background = 'rgba(16, 185, 129, 0.2)';
+        this.errorBadge.style.color = '#34d399';
+        this.errorBadge.style.borderColor = '#10b981';
+        this.errorBadge.style.padding = '2px 8px';
+        this.errorBadge.style.borderRadius = '4px';
+        
+        setTimeout(() => {
+            if (this.errorBadge.innerText === message) {
+                this.errorBadge.style.display = 'none';
+                this.errorBadge.style.background = '';
+                this.errorBadge.style.color = '';
+                this.errorBadge.style.borderColor = '';
+                this.errorBadge.style.padding = '';
+                this.errorBadge.innerText = 'Syntax Error';
+            }
+        }, 2000);
     }
 }
 

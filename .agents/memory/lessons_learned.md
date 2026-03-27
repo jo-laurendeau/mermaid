@@ -5,5 +5,9 @@
 - **Workaround (Langium CLI)**: Patching `node_modules/langium-cli/lib/generate.js` to bypass `validate(config, ...)` unblocks the build if Node cannot be upgraded.
 - **Build Sequence**: In this monorepo, `pnpm dev` requires a prior `pnpm build` if the `dist` folders are empty, as esbuild resolution for internal packages (like `parser`) depends on exported artifacts in those folders.
 
+## Source Control
+- **Git Sync Strategy**: When pulling changes from GitHub while having local staged files, use `git stash save` and `git stash pop` to prevent pull abortion or merge failures.
+- **Terminal Compatibility (Windows)**: In PowerShell, GNU tools like `grep` may not be available; use `Select-String` or rely on `git status` output ("Unmerged paths") to identify merge markers.
+
 ## Project Setup
 - [2026-03-24] Initialized the `.agents` orchestration system from the `SmartGroceryList` template.
