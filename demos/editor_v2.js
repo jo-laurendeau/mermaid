@@ -14,6 +14,8 @@ class MermaidEditorV2 {
         this.errorBadge = document.getElementById('error-badge');
         this.predictionBubble = document.getElementById('prediction-bubble');
         this.predictionText = document.getElementById('prediction-text');
+        this.appWrapper = document.getElementById('app-wrapper');
+        this.exportContainer = document.getElementById('export-container');
         
         this.renderTimeout = null;
         this.isDark = false; // "Inverted" theme is now the default
@@ -101,7 +103,9 @@ class MermaidEditorV2 {
     }
 
     applyTheme() {
-        document.body.style.filter = this.isDark ? 'none' : 'invert(1) hue-rotate(180deg)';
+        if (this.appWrapper) {
+            this.appWrapper.style.filter = this.isDark ? 'none' : 'invert(1) hue-rotate(180deg)';
+        }
     }
 
     toggleTheme() {
@@ -220,125 +224,6 @@ class MermaidEditorV2 {
     loadTemplate(type) {
         let tpl = "";
         switch(type) {
-            case 'unified_v5_flow':
-                tpl = `flowchart LR
-    direction LR
-
-    subgraph PHASE1 ["Phase 1: Qualification & Analyse"]
-        direction TB
-        OPEN(["OPEN"])
-        DRAFT["DRAFT"]
-        TO_BE_PRIORITIZED["TO BE PRIORITIZED"]
-        SUBMITTED["SUBMITTED"]
-        MACRO_STUDY["MACRO-STUDY"]
-
-        OPEN -->|Create| DRAFT
-        DRAFT -->|Submit triage| TO_BE_PRIORITIZED
-        TO_BE_PRIORITIZED -->|Ready for study| SUBMITTED
-        SUBMITTED -->|Start| MACRO_STUDY
-    end
-
-    subgraph PHASE2 ["Phase 2: Analyse & Solution design"]
-        direction TB
-        MACRO_STUDY_NODE["MACRO-STUDY"]
-        NOTE2["<b>Analyze Solution</b><br/>Functional & Technical feasibility<br/>Impact on Product<br/>Effort estimation<br/>Preconise: RELEASE or HOTFIX"]
-        
-        MACRO_STUDY_NODE -.-> NOTE2
-    end
-
-    subgraph PHASE3 ["Phase 3: Priorisation"]
-        direction TB
-        BACKLOG["BACKLOG"]
-        WAITING_FOR_STAKEHOLDERS["WAITING FOR STAKEHOLDERS"]
-        PRIOTIZED_BACKLOG["PRIOTIZED BACKLOG"]
-        
-        BACKLOG -->|Request decision| WAITING_FOR_STAKEHOLDERS
-        WAITING_FOR_STAKEHOLDERS -->|Prioritized| PRIOTIZED_BACKLOG
-        PRIOTIZED_BACKLOG -->|Repriorization| WAITING_FOR_STAKEHOLDERS
-        
-        NOTE3["<b>Decision Gate</b><br/>- Accept & Prioritize<br/>- Refuse<br/>- Abandon"]
-        WAITING_FOR_STAKEHOLDERS -.-> NOTE3
-    end
-
-    subgraph PHASE4 ["Phase 4: Build & Quality check"]
-        direction TB
-        IN_PROGRESS["IN PROGRESS"]
-        CODE_REVIEW["CODE REVIEW"]
-        SUSPENDED["SUSPENDED"]
-        FUNCTIONAL_REVIEW["FUNCTIONAL REVIEW"]
-        READY_FOR_RELEASE["READY FOR RELEASE"]
-        READY_FOR_HOTFIX["READY FOR HOTFIX"]
-
-        IN_PROGRESS -->|Submit| CODE_REVIEW
-        CODE_REVIEW -->|Back| IN_PROGRESS
-        IN_PROGRESS -->|Suspend| SUSPENDED
-        SUSPENDED -->|Continue| IN_PROGRESS
-        CODE_REVIEW -->|Submit| FUNCTIONAL_REVIEW
-        FUNCTIONAL_REVIEW -->|Back| IN_PROGRESS
-        FUNCTIONAL_REVIEW -->|Normal| READY_FOR_RELEASE
-        FUNCTIONAL_REVIEW -->|Hotfix| READY_FOR_HOTFIX
-    end
-
-    subgraph PHASE5 ["Phase 5: Final validation & Delivery"]
-        direction TB
-        TO_INTEGRATE["TO_INTEGRATE"]
-        TO_BE_VALIDATED_BY_OWNER["TO BE VALIDATED BY OWNER"]
-        TO_DELIVER["TO DELIVER"]
-        DELIVERED_IN_ACCEPTANCE["DELIVERED IN ACCEPTANCE"]
-        ACCEPTANCE_VALIDATED["ACCEPTANCE VALIDATED"]
-        TO_DELIVER_IN_PROD["PREPARE PROD DELIVERY"]
-        DELIVERED_IN_PROD["DELIVERED IN PRODUCTION"]
-        PRODUCTION_VALIDATED["PRODUCTION VALIDATED"]
-        SOLVED_STATE["SOLVED"]
-
-        TO_INTEGRATE -->|Success| TO_BE_VALIDATED_BY_OWNER
-        TO_BE_VALIDATED_BY_OWNER -->|Validate| TO_DELIVER
-        TO_DELIVER -->|Acceptance| DELIVERED_IN_ACCEPTANCE
-        DELIVERED_IN_ACCEPTANCE -->|Validate| ACCEPTANCE_VALIDATED
-        ACCEPTANCE_VALIDATED -->|Prepare| TO_DELIVER_IN_PROD
-        TO_DELIVER_IN_PROD -->|Production| DELIVERED_IN_PROD
-        DELIVERED_IN_PROD -->|Validate| PRODUCTION_VALIDATED
-        PRODUCTION_VALIDATED -->|Confirm| SOLVED_STATE
-    end
-
-    subgraph PHASE_END ["End"]
-        direction TB
-        REJECTED["REJECTED"]
-        ABANDONNED["ABANDONNED"]
-        CLOSED["CLOSED"]
-        
-        REJECTED --> CLOSED
-        ABANDONNED --> CLOSED
-        SOLVED_STATE --> CLOSED
-    end
-
-    %% Cross-Phase Transitions
-    MACRO_STUDY -->|Accepted| BACKLOG
-    MACRO_STUDY -->|Abandoned| ABANDONNED
-    MACRO_STUDY -->|Refused| REJECTED
-
-    PRIOTIZED_BACKLOG -->|Start work| IN_PROGRESS
-    WAITING_FOR_STAKEHOLDERS -->|Refused| REJECTED
-    WAITING_FOR_STAKEHOLDERS -->|Abandoned| ABANDONNED
-    
-    REJECTED -->|Escalation| WAITING_FOR_STAKEHOLDERS
-    ABANDONNED -->|Escalation| WAITING_FOR_STAKEHOLDERS
-
-    READY_FOR_RELEASE -->|Release done| TO_INTEGRATE
-    READY_FOR_HOTFIX -->|Hotfix done| TO_INTEGRATE
-    
-    TO_BE_VALIDATED_BY_OWNER -->|Refused| IN_PROGRESS
-    DELIVERED_IN_ACCEPTANCE -->|Refused| IN_PROGRESS
-    DELIVERED_IN_PROD -->|Refused| IN_PROGRESS
-
-    CLOSED --> END_POINT(["[*]"])
-
-    %% Styles
-    classDef note fill:#fff5ad,stroke:#d4a017,stroke-dasharray: 2 2
-    class NOTE2,NOTE3 note
-    classDef phase stroke:#333,stroke-width:2px;
-    class PHASE1,PHASE2,PHASE3,PHASE4,PHASE5 phase`;
-                break;
             case 'unified_v4.1':
                 tpl = `stateDiagram-v2
     direction LR
@@ -850,7 +735,7 @@ class MermaidEditorV2 {
 
     toggleTheme() {
         this.isDark = !this.isDark;
-        document.body.style.filter = this.isDark ? 'none' : 'invert(1) hue-rotate(180deg)';
+        this.applyTheme();
     }
 
     downloadSVG() {
@@ -919,41 +804,32 @@ class MermaidEditorV2 {
         if (!originalCode) return;
 
         this.showFeedback("Generating PDF...");
-        
-        // Save UI filter to restore later
-        const originalFilter = document.body.style.filter;
 
         try {
-            // STEP 1: FORCE THEME TO LIGHT (DEFAULT)
-            // Important: Disable UI inversion during capture to avoid interference
-            document.body.style.filter = 'none';
-
+            // STEP 1: FORCE THEME TO LIGHT (DEFAULT) in the isolated container
             await mermaid.initialize({
-                theme: 'default', // "default" is the specific keyword for light theme
+                theme: 'default',
                 fontFamily: 'Outfit',
                 securityLevel: 'loose'
             });
 
-            // Stability delay to ensure Mermaid state is fully applied
+            // Stability delay
             await new Promise(r => setTimeout(r, 200));
 
-            // STEP 2: RENDER A STICKY LIGHT SVG
+            // STEP 2: RENDER INTO THE ISOLATED EXPORT CONTAINER
+            // (This container has NO CSS filter and is off-screen)
             const { svg: lightSvg } = await mermaid.render('mermaid-pdf-temp-' + Date.now(), originalCode);
+            this.exportContainer.innerHTML = lightSvg;
             
-            // STEP 3: MEASURE DIMENSIONS IN A HIDDEN CONTAINER
-            const tempDiv = document.createElement('div');
-            tempDiv.style.position = 'absolute';
-            tempDiv.style.left = '-9999px';
-            tempDiv.style.top = '-9999px';
-            tempDiv.innerHTML = lightSvg;
-            document.body.appendChild(tempDiv);
+            const svgElement = this.exportContainer.querySelector('svg');
             
-            const svgElement = tempDiv.querySelector('svg');
-            const bbox = svgElement.viewBox.baseVal;
-            const width = bbox.width || svgElement.clientWidth || 800;
-            const height = bbox.height || svgElement.clientHeight || 600;
+            // CRITICAL: Use getBBox() for precise dimensions (prevents clipping of long notes)
+            // We need to append to DOM temporarily to get accurate BBox if not already there
+            const bbox = svgElement.getBBox();
+            const width = bbox.width + bbox.x * 2 + 40; // Add padding
+            const height = bbox.height + bbox.y * 2 + 40;
 
-            // STEP 4: CAPTURE ON CANVAS AT 3X SCALE
+            // STEP 3: CAPTURE ON CANVAS AT 3X SCALE
             const img = new Image();
             img.onload = () => {
                 const canvas = document.createElement('canvas');
@@ -962,10 +838,10 @@ class MermaidEditorV2 {
                 canvas.height = height * scale;
                 
                 const ctx = canvas.getContext('2d');
-                ctx.fillStyle = "white"; // Force white background
+                ctx.fillStyle = "white"; 
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
                 
-                // Draw the SVG image onto the white canvas
+                // Draw to canvas
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 
                 const imgData = canvas.toDataURL('image/png');
@@ -977,14 +853,12 @@ class MermaidEditorV2 {
                 pdf.save('mermaid-diagram.pdf');
                 
                 // Cleanup
-                document.body.removeChild(tempDiv);
-                
-                // RESTORE UI AND THEME
-                this.restoreAfterExport(originalFilter);
+                this.exportContainer.innerHTML = '';
+                this.restoreAfterExport();
                 this.showFeedback("PDF Exported!");
             };
 
-            // Ensure XML compliance for the temporary SVG before data URL creation
+            // Serialize with valid XML (fixing unclosed <br> tags)
             let cleanXml = new XMLSerializer().serializeToString(svgElement);
             cleanXml = cleanXml.replace(/<br>/g, '<br/>').replace(/<br\s*>/g, '<br/>');
             const svg64 = btoa(unescape(encodeURIComponent(cleanXml)));
@@ -993,23 +867,18 @@ class MermaidEditorV2 {
         } catch (e) {
             console.error("PDF Export Error", e);
             this.showFeedback("Export Error!");
-            this.restoreAfterExport(originalFilter);
+            this.restoreAfterExport();
         }
     }
 
-    async restoreAfterExport(originalFilter) {
-        // Restore UI filter
-        document.body.style.filter = originalFilter;
-
-        // Restore Mermaid's dark theme
+    async restoreAfterExport() {
+        // Restore Mermaid's dark theme for the UI
         await mermaid.initialize({
             theme: 'dark',
             fontFamily: 'Outfit',
             securityLevel: 'loose',
             suppressErrorRendering: true
         });
-        
-        // Re-render the visual preview
         this.updatePreview();
     }
 

@@ -1,0 +1,26 @@
+sequenceDiagram
+    participant OP as Operator
+    participant ED as Editor
+    participant IN as Integrator
+
+    Note over OP, IN: Phase 1: Qualification
+    OP->>IN: Submit RFC/Defect (full data, logs)
+    IN->>IN: Triage & Assign (to sub-pilar)
+    
+    Note over OP, IN: Phase 2: Analyse & Solution
+    IN->>ED: Functional & Technical Analysis
+    ED-->>OP: Effort Estimation & Proposal
+    
+    Note over OP, IN: Phase 3: Priorisation
+    Note over OP, IN: Decision Gate (Reject / Refuse / Accept)
+    OP->>OP: Manco OI Decision
+    
+    Note over OP, IN: Phase 4: Build
+    OP->>ED: Execute Decision (Release / Hotfix)
+    ED->>ED: Code Review & Functional Review
+    
+    Note over OP, IN: Phase 5: Final Validation & Delivery
+    ED->>OP: Deliver in Acceptance
+    OP->>OP: Owner Validation
+    OP->>IN: Deliver in Production
+    IN->>OP: Solution Confirmed (Solved)

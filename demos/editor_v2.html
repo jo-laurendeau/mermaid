@@ -7,6 +7,7 @@
     <link rel="stylesheet" href="./editor_v2.css">
 </head>
 <body>
+<div id="app-wrapper">
     <header>
         <div class="logo">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2v20M2 12h20"/><circle cx="12" cy="12" r="10"/></svg>
@@ -43,21 +44,12 @@
             <div class="tool-icon" id="templates-toggle" title="Templates Library">
                 <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>
                 <div id="templates-menu" class="dropdown-menu">
-                    <div class="menu-label">V4 PREMIUM TEMPLATES</div>
-                    <div class="menu-item" onclick="window.app.loadTemplate('unified_v4.1')">Unified V4.1 (With Notes)</div>
-                    <div class="menu-item" onclick="window.app.loadTemplate('unified_v4')">Unified V4 (Fixed Layout)</div>
+                    <div class="menu-label">CURRENT TEMPLATE</div>
+                    <div class="menu-item" onclick="window.app.loadTemplate('unified_v4.1')">Unified V4.1 (Business Focus)</div>
                     <div class="menu-divider"></div>
-                    <div class="menu-label">V5 PREMIUM TEMPLATES</div>
-                    <div class="menu-item" onclick="window.app.loadTemplate('unified_v5_flow')">Unified V5 (Flowchart LR/TB)</div>
-                    <div class="menu-divider"></div>
-                    <div class="menu-label">V3 PREMIUM TEMPLATES</div>
-                    <div class="menu-item" onclick="window.app.loadTemplate('unified_v3')">Unified V3 (New Flow)</div>
-                    <div class="menu-divider"></div>
-                    <div class="menu-label">V2 PREMIUM TEMPLATES</div>
-                    <div class="menu-item" onclick="window.app.loadTemplate('unified_v2')">Unified V2 (Factorized)</div>
-                    <div class="menu-item" onclick="window.app.loadTemplate('rfc_v2')">RFC V2 (Detailed)</div>
-                    <div class="menu-item" onclick="window.app.loadTemplate('bug_v2')">Anomalie V2 (Detailed)</div>
-                    <div class="menu-item" onclick="window.app.loadTemplate('incident_v2')">Incident V2 (Detailed)</div>
+                    <div class="menu-label">SUGGESTIONS (COMING SOON)</div>
+                    <div class="menu-item disabled" style="opacity: 0.5; cursor: not-allowed;">Sequence Diagram</div>
+                    <div class="menu-item disabled" style="opacity: 0.5; cursor: not-allowed;">Timeline Diagram</div>
                 </div>
             </div>
         </div>
@@ -93,6 +85,10 @@
         </div>
         <div id="engine-status">Engine: Mermaid JS v11.0.0</div>
     </div>
+</div>
+
+<!-- Hidden EXPORT container (isolated from UI filters) -->
+<div id="export-container" style="position: absolute; left: -9999px; top: -9999px; visibility: hidden;"></div>
 
     <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
     <script type="module" src="./editor_v2.js"></script>

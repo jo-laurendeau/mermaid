@@ -16,13 +16,18 @@
 
 body {
   margin: 0;
-  font-family: 'Outfit', sans-serif;
   background: var(--bg-deep);
-  color: var(--text-main);
+  height: 100vh;
+  overflow: hidden;
+}
+
+#app-wrapper {
   height: 100vh;
   display: flex;
   flex-direction: column;
   overflow: hidden;
+  font-family: 'Outfit', sans-serif;
+  color: var(--text-main);
 }
 
 header {

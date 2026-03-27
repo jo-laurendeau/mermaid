@@ -1,5 +1,5 @@
 stateDiagram-v2
-    direction TD
+    direction TB
 
     %% Global State Definitions
     state "OPEN" as OPEN
@@ -37,18 +37,26 @@ stateDiagram-v2
         TO_BE_PRIORITIZED --> SUBMITTED : Ready for study
         SUBMITTED --> MACRO_STUDY : Start Macro-study
     }
+    note right of PHASE_QUALIFICATION 
+        - Responsible & Accountable of the success of this phase : Integrator or Operator
+        - Provide full data so Analyse & Solution design can be done
+        - RFC : full functional & non functional requirements
+        - Defect : full logs, screenshots, explanations, etc.
+        - Incident : full logs, screenshots, explanations, etc.
+        - Asign to the right sub-pilar / team => Operator, Editor, Integrator
+    end note
 
     state "Phase 2: Analyse & Solution design" as PHASE_STUDY {
         MACRO_STUDY
-    note left of MACRO_STUDY
-        - Functional & Technical feasibility & solution
-        - Impact on Product & Solution
-        - Effort estimation
-        - Preconise delivery option: RELEASE or HOTFIX
-    end note
     }
     
-
+    note left of PHASE_STUDY 
+        - Responsible & Accountable of the success of this phase : Editor or Operator
+        - Functional & Technical feasibility & solution
+        - Impact on Product & Solution
+        - Effort estimation and financial proposal (charged to Operator or Integrator or Editor or mixte)
+        - Preconise delivery option: RELEASE or HOTFIX
+    end note
 
     state "Phase 3: Priorisation" as PHASE_PRIORITISATION {
         BACKLOG --> WAITING_FOR_STAKEHOLDERS : Request decision
@@ -57,8 +65,8 @@ stateDiagram-v2
     }
 
     note left of PHASE_PRIORITISATION
-        Decision Gate:
-        - Accept & Prioritize & RELEASE or HOTFIX
+        Decision Gate by STAKEHOLDER : Manco OI
+        - Accept : Prioritize (P0 to P5) & RELEASE or HOTFIX & Validate the budget and who pays.
         - Refuse
         - Abandon
         - Suspend in progress tasks
@@ -76,6 +84,11 @@ stateDiagram-v2
         FUNCTIONAL_REVIEW --> READY_FOR_HOTFIX : Hotfix requested
     }
 
+    note left of PHASE_BUILD
+        - Responsible & Accountable of the success of this phase : Editor or Integrator or Operator
+        - Execute decision of previous phase
+    end note
+
     state "Phase 5: Final validation & Delivery" as PHASE_FINAL_VALIDATION {
         TO_INTEGRATE --> TO_BE_VALIDATED_BY_OWNER : Integration success
         TO_BE_VALIDATED_BY_OWNER --> TO_DELIVER : Validate
@@ -88,6 +101,11 @@ stateDiagram-v2
         DELIVERED_IN_PROD --> TO_DELIVER_IN_PROD : Solution doesn't work in Production
         PRODUCTION_VALIDATED --> SOLVED : Solution confirmed
     }
+
+    note left of PHASE_FINAL_VALIDATION 
+        - Responsible & Accountable of the success of this phase : ticket creator (Integrator of Operator)
+        - Validate and deliver
+    end note
 
     state "End" as END {
         REJECTED --> CLOSED
