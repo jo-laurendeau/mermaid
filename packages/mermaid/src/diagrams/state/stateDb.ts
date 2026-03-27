@@ -179,6 +179,8 @@ export interface Edge {
   thickness: string;
   classes: string;
   look: MermaidConfig['look'];
+  minlen?: number;
+  weight?: number;
 }
 
 /**
@@ -408,9 +410,7 @@ export class StateDB {
       if (!state) {
         throw new Error(`State not found: ${trimmedId}`);
       }
-      if (!state.doc) {
-        state.doc = doc;
-      }
+      state.doc ??= doc;
       if (!state.type) {
         state.type = type;
       }

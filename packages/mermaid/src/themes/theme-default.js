@@ -219,7 +219,7 @@ class Theme {
     this.transitionLabelColor = this.transitionLabelColor || this.textColor;
     this.stateLabelColor = this.stateLabelColor || this.stateBkg || this.primaryTextColor;
 
-    this.stateBkg = this.stateBkg || this.mainBkg;
+    this.stateBkg = this.stateBkg || this.background;
     this.labelBackgroundColor = this.labelBackgroundColor || this.stateBkg;
     this.compositeBackground = this.compositeBackground || this.background || this.tertiaryColor;
     this.altBackground = this.altBackground || '#f0f0f0';

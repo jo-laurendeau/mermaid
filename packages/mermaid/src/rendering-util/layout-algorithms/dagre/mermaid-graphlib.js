@@ -348,8 +348,8 @@ export const extractor = (graph, depth) => {
       })
         .setGraph({
           rankdir: dir,
-          nodesep: graphSettings.nodesep ?? 2,
-          ranksep: graphSettings.ranksep ?? 2,
+          nodesep: graphSettings.nodesep ?? 15,
+          ranksep: graphSettings.ranksep ?? 20,
           marginx: 0,
           marginy: 0,
         })

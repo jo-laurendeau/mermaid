@@ -138,6 +138,12 @@ const recursiveRender = async (_elem, graph, diagramType, id, parentCluster, sit
       log.info('Edge ' + e.v + ' -> ' + e.w + ': ', e, ' ', JSON.stringify(graph.edge(e)));
 
       // Check if link is either from or to a cluster
+      const edgeObj = graph.edge(e);
+      // For state diagrams, default minlen to 2 to stretch edges and avoid label-node collisions
+      if (diagramType && diagramType.includes('state') && !edgeObj.minlen) {
+        edgeObj.minlen = 2;
+        graph.setEdge(e.v, e.w, edgeObj, e.name);
+      }
       log.info(
         'Fix',
         clusterDb,
@@ -168,6 +174,11 @@ const recursiveRender = async (_elem, graph, diagramType, id, parentCluster, sit
   // Move the nodes to the correct place
   let diff = 0;
   let { subGraphTitleTotalMargin } = getSubGraphTitleMargins(siteConfig);
+  // State diagrams need more title clearance: title bar is ~18px (bbox.height + 2)
+  // Regular nodes shift by margin/2, so margin must be >= 2 * 18 = 36
+  if (diagramType && diagramType.includes('state')) {
+    subGraphTitleTotalMargin = Math.max(subGraphTitleTotalMargin, 36);
+  }
   await Promise.all(
     sortNodesByHierarchy(graph).map(async function (v) {
       const node = graph.node(v);

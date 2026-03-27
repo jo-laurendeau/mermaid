@@ -98,7 +98,7 @@ const setupDoc = (
             look,
             classes
           );
-          const edgeData = {
+          const edgeData: Edge = {
             id: 'edge' + graphItemCount,
             start: item.state1.id,
             end: item.state2.id,
@@ -287,7 +287,7 @@ export const dataFetcher = (
       domId: stateDomId(itemId, graphItemCount),
       type: newNode.type,
       isGroup: newNode.type === 'group',
-      padding: 2,
+      padding: newNode.type === 'group' ? 16 : 2,
       rx: 5,
       ry: 5,
       look,

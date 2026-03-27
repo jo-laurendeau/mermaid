@@ -38,18 +38,18 @@ export const getDir = (
 
 export const getClasses = function (
   text: string,
-  diagramObj: Record<string, unknown>
+  diagramObj: any
 ): Map<string, DiagramStyleClassDef> {
-  return (diagramObj.db as Record<string, any>).getClasses();
+  return diagramObj.db.getClasses();
 };
 
 export const draw = async function (
   text: string,
   id: string,
   _version: string,
-  diag: Record<string, unknown>
+  diag: any
 ) {
-  const db = diag.db as Record<string, any>;
+  const db = diag.db;
   log.info('REF0:');
   log.info('Drawing state diagram (v2)', id);
   const { securityLevel, state: conf, layout } = getConfig();
@@ -71,8 +71,8 @@ export const draw = async function (
 
   // TODO: Should we move these two to baseConfig? These types are not there in StateConfig.
 
-  data4Layout.nodeSpacing = conf?.nodeSpacing ?? 2;
-  data4Layout.rankSpacing = conf?.rankSpacing ?? 2;
+  data4Layout.nodeSpacing = conf?.nodeSpacing ?? 50;
+  data4Layout.rankSpacing = conf?.rankSpacing ?? 50;
   data4Layout.markers = ['barb'];
   data4Layout.diagramId = id;
   // console.log('REF1:', data4Layout);
@@ -137,7 +137,7 @@ export const draw = async function (
     svg,
     'statediagramTitleText',
     conf?.titleTopMargin ?? 25,
-    diag.db.getDiagramTitle()
+    db.getDiagramTitle()
   );
   setupViewPortForSVG(svg, padding, CSS_DIAGRAM, conf?.useMaxWidth ?? true);
 };

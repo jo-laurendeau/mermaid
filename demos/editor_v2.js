@@ -36,7 +36,141 @@ class MermaidEditorV2 {
         });
 
         // Set default content
-        this.editor.value = "stateDiagram-v2\n    [*] --> Still\n    Still --> [*]\n    Still --> Moving\n    Moving --> Still\n    Moving --> Crash\n    Crash --> [*]";
+        this.editor.value = `stateDiagram-v2
+    direction TB
+
+    %% Global State Definitions
+    state "OPEN" as OPEN
+    state "DRAFT" as DRAFT
+    state "TO BE PRIORITIZED" as TO_BE_PRIORITIZED
+    state "SUBMITTED" as SUBMITTED
+    state "MACRO-STUDY" as MACRO_STUDY
+    state "BACKLOG" as BACKLOG
+    state "WAITING FOR STAKEHOLDERS" as WAITING_FOR_STAKEHOLDERS
+    state "PRIOTIZED BACKLOG" as PRIOTIZED_BACKLOG
+    state "IN PROGRESS" as IN_PROGRESS
+    state "SUSPENDED" as SUSPENDED
+    state "CODE REVIEW" as CODE_REVIEW
+    state "TO DELIVER" as TO_DELIVER
+    state "FUNCTIONAL REVIEW" as FUNCTIONAL_REVIEW
+    state "READY FOR HOTFIX" as READY_FOR_HOTFIX
+    state "READY FOR RELEASE" as READY_FOR_RELEASE
+    state "TO_INTEGRATE" as TO_INTEGRATE
+    state "TO BE VALIDATED BY OWNER" as TO_BE_VALIDATED_BY_OWNER
+    state "DELIVERED IN ACCEPTANCE" as DELIVERED_IN_ACCEPTANCE
+    state "ACCEPTANCE VALIDATED" as ACCEPTANCE_VALIDATED
+    state "PREPARE PROD DELIVERY" as TO_DELIVER_IN_PROD
+    state "DELIVERED IN PRODUCTION" as DELIVERED_IN_PROD
+    state "PRODUCTION VALIDATED" as PRODUCTION_VALIDATED
+    state "ABANDONNED" as ABANDONNED
+    state "SOLVED" as SOLVED
+    state "REJECTED" as REJECTED
+    state "CLOSED" as CLOSED
+
+    [*] --> PHASE_QUALIFICATION
+
+    state "Phase 1: Qualification & Analyse" as PHASE_QUALIFICATION {
+        OPEN --> DRAFT : Create
+        DRAFT --> TO_BE_PRIORITIZED : Submit for priorisation P0 to P5
+        TO_BE_PRIORITIZED --> SUBMITTED : Ready for study
+        SUBMITTED --> MACRO_STUDY : Start Macro-study
+    }
+    note right of PHASE_QUALIFICATION 
+        - Responsible & Accountable of the success of this phase : Integrator or Operator
+        - Provide full data so Analyse & Solution design can be done
+        - RFC : full functional & non functional requirements
+        - Defect : full logs, screenshots, explanations, etc.
+        - Incident : full logs, screenshots, explanations, etc.
+        - Asign to the right sub-pilar / team => Operator, Editor, Integrator
+    end note
+
+    state "Phase 2: Analyse & Solution design" as PHASE_STUDY {
+        MACRO_STUDY
+    }
+    
+    note left of PHASE_STUDY 
+        - Responsible & Accountable of the success of this phase : Editor or Operator
+        - Functional & Technical feasibility & solution
+        - Impact on Product & Solution
+        - Effort estimation and financial proposal (charged to Operator or Integrator or Editor or mixte)
+        - Preconise delivery option: RELEASE or HOTFIX
+    end note
+
+    state "Phase 3: Priorisation" as PHASE_PRIORITISATION {
+        BACKLOG --> WAITING_FOR_STAKEHOLDERS : Request decision
+        WAITING_FOR_STAKEHOLDERS --> PRIOTIZED_BACKLOG : Prioritized
+        PRIOTIZED_BACKLOG --> WAITING_FOR_STAKEHOLDERS : Repriorization
+    }
+
+    note left of PHASE_PRIORITISATION
+        Decision Gate by STAKEHOLDER : Manco OI
+        - Accept : Prioritize (P0 to P5) & RELEASE or HOTFIX & Validate the budget and who pays.
+        - Refuse
+        - Abandon
+        - Suspend in progress tasks
+        - Restart in progress tasks
+    end note
+
+    state "Phase 4: Build & Quality check" as PHASE_BUILD {
+        IN_PROGRESS --> CODE_REVIEW : Submit to review
+        CODE_REVIEW --> IN_PROGRESS : Back to in progress
+        IN_PROGRESS --> SUSPENDED : Suspend work
+        SUSPENDED --> IN_PROGRESS : Restart work
+        CODE_REVIEW --> FUNCTIONAL_REVIEW : Submit to review
+        FUNCTIONAL_REVIEW --> IN_PROGRESS : Back to in progress
+        FUNCTIONAL_REVIEW --> READY_FOR_RELEASE : Normal flow
+        FUNCTIONAL_REVIEW --> READY_FOR_HOTFIX : Hotfix requested
+    }
+
+    note left of PHASE_BUILD
+        - Responsible & Accountable of the success of this phase : Editor or Integrator or Operator
+        - Execute decision of previous phase
+    end note
+
+    state "Phase 5: Final validation & Delivery" as PHASE_FINAL_VALIDATION {
+        TO_INTEGRATE --> TO_BE_VALIDATED_BY_OWNER : Integration success
+        TO_BE_VALIDATED_BY_OWNER --> TO_DELIVER : Validate
+        TO_DELIVER --> DELIVERED_IN_ACCEPTANCE : Delivered in acceptance
+        DELIVERED_IN_ACCEPTANCE --> ACCEPTANCE_VALIDATED : Validate in acceptance
+        DELIVERED_IN_ACCEPTANCE --> TO_DELIVER : Solution doesn't work in Acceptance
+        ACCEPTANCE_VALIDATED --> TO_DELIVER_IN_PROD : prepare production delivery
+        TO_DELIVER_IN_PROD --> DELIVERED_IN_PROD : delivered in production
+        DELIVERED_IN_PROD --> PRODUCTION_VALIDATED : Validate in production
+        DELIVERED_IN_PROD --> TO_DELIVER_IN_PROD : Solution doesn't work in Production
+        PRODUCTION_VALIDATED --> SOLVED : Solution confirmed
+    }
+
+    note left of PHASE_FINAL_VALIDATION 
+        - Responsible & Accountable of the success of this phase : ticket creator (Integrator of Operator)
+        - Validate and deliver
+    end note
+
+    state "End" as END {
+        REJECTED --> CLOSED
+        ABANDONNED --> CLOSED
+        SOLVED --> CLOSED
+    }
+
+    %% Cross-Phase / Boundary Transitions
+    MACRO_STUDY --> BACKLOG : Accepted
+    MACRO_STUDY --> ABANDONNED : Abandonned
+    MACRO_STUDY --> REJECTED : Refused
+
+    PHASE_PRIORITISATION --> IN_PROGRESS : Start work
+    WAITING_FOR_STAKEHOLDERS --> REJECTED : Refused
+    WAITING_FOR_STAKEHOLDERS --> ABANDONNED : Abandonned
+    
+    REJECTED --> WAITING_FOR_STAKEHOLDERS : escalation
+    ABANDONNED --> WAITING_FOR_STAKEHOLDERS : escalation
+
+    READY_FOR_RELEASE --> TO_INTEGRATE : Released done
+    READY_FOR_HOTFIX --> TO_INTEGRATE : Hotfix done
+    
+    TO_BE_VALIDATED_BY_OWNER --> IN_PROGRESS : Solution doesn't work
+    DELIVERED_IN_ACCEPTANCE --> IN_PROGRESS : Solution doesn't work in Acceptance
+    DELIVERED_IN_PROD --> IN_PROGRESS : Solution doesn't work in Production
+
+    CLOSED --> [*]`;
 
         // Event Listeners
         this.editor.addEventListener('input', () => this.onInputChange());
