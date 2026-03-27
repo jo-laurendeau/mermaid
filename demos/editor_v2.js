@@ -738,24 +738,44 @@ class MermaidEditorV2 {
         this.applyTheme();
     }
 
-    downloadSVG() {
-        const svgElement = this.output.querySelector('svg');
+    async renderCleanSVG() {
+        const originalCode = this.editor.value.trim();
+        if (!originalCode) return null;
+
+        // 1. Force Light theme for export
+        await mermaid.initialize({
+            theme: 'default',
+            fontFamily: 'Outfit',
+            securityLevel: 'loose'
+        });
+
+        // Stability delay
+        await new Promise(r => setTimeout(r, 200));
+
+        // 2. Render into hidden container
+        const { svg: lightSvg } = await mermaid.render('mermaid-export-temp-' + Date.now(), originalCode);
+        this.exportContainer.innerHTML = lightSvg;
+        
+        const svgElement = this.exportContainer.querySelector('svg');
+        
+        // Fix unclosed tags for XML/SVG standards
+        let xml = new XMLSerializer().serializeToString(svgElement);
+        xml = xml.replace(/<br>/g, '<br/>').replace(/<br\s*>/g, '<br/>');
+        
+        // Re-inject the cleaned XML into the export container so we can measure it
+        this.exportContainer.innerHTML = xml;
+        return this.exportContainer.querySelector('svg');
+    }
+
+    async downloadSVG() {
+        this.showFeedback("Generating SVG...");
+        const svgElement = await this.renderCleanSVG();
         if (!svgElement) return;
 
-        // 1. Serialize using XMLSerializer for better XML conformance
         let xml = new XMLSerializer().serializeToString(svgElement);
-        
-        // 2. Fix Mermaid's <br> unclosed tags which break some standalone SVG viewers
-        // STANDALONE SVG MUST BE VALID XML
-        xml = xml.replace(/<br>/g, '<br/>');
-        xml = xml.replace(/<br\s*>/g, '<br/>');
-        
-        // 3. Ensure XML namespace is present and correct
         if (!xml.includes('xmlns="http://www.w3.org/2000/svg"')) {
             xml = xml.replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" ');
         }
-        
-        // 4. Add XML declaration if missing
         if (!xml.startsWith('<?xml')) {
             xml = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n' + xml;
         }
@@ -767,69 +787,56 @@ class MermaidEditorV2 {
         a.download = 'mermaid-diagram.svg';
         a.click();
         
-        // Cleanup
         setTimeout(() => URL.revokeObjectURL(url), 100);
+        this.restoreAfterExport();
         this.showFeedback("SVG Exported!");
     }
 
-    downloadPNG() {
-        const svgElement = this.output.querySelector('svg');
+    async downloadPNG() {
+        this.showFeedback("Generating PNG...");
+        const svgElement = await this.renderCleanSVG();
         if (!svgElement) return;
+
+        const bbox = svgElement.getBBox();
+        const width = bbox.width + bbox.x * 2 + 40;
+        const height = bbox.height + bbox.y * 2 + 40;
 
         const xml = new XMLSerializer().serializeToString(svgElement);
         const svg64 = btoa(unescape(encodeURIComponent(xml)));
-        const b64Start = 'data:image/svg+xml;base64,';
-        const image64 = b64Start + svg64;
+        const image64 = 'data:image/svg+xml;base64,' + svg64;
 
         const img = new Image();
         img.onload = () => {
             const canvas = document.createElement('canvas');
-            canvas.width = svgElement.clientWidth * 2;
-            canvas.height = svgElement.clientHeight * 2;
+            const scale = 3; 
+            canvas.width = width * scale;
+            canvas.height = height * scale;
             const ctx = canvas.getContext('2d');
-            ctx.scale(2, 2);
             ctx.fillStyle = "white";
             ctx.fillRect(0, 0, canvas.width, canvas.height);
-            ctx.drawImage(img, 0, 0);
+            ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+            
             const a = document.createElement('a');
             a.href = canvas.toDataURL('image/png');
-            a.download = 'mermaid-v2.png';
+            a.download = 'mermaid-diagram.png';
             a.click();
+            
+            this.restoreAfterExport();
+            this.showFeedback("PNG Exported!");
         };
         img.src = image64;
     }
 
     async downloadPDF() {
-        const originalCode = this.editor.value.trim();
-        if (!originalCode) return;
-
         this.showFeedback("Generating PDF...");
+        const svgElement = await this.renderCleanSVG();
+        if (!svgElement) return;
 
         try {
-            // STEP 1: FORCE THEME TO LIGHT (DEFAULT) in the isolated container
-            await mermaid.initialize({
-                theme: 'default',
-                fontFamily: 'Outfit',
-                securityLevel: 'loose'
-            });
-
-            // Stability delay
-            await new Promise(r => setTimeout(r, 200));
-
-            // STEP 2: RENDER INTO THE ISOLATED EXPORT CONTAINER
-            // (This container has NO CSS filter and is off-screen)
-            const { svg: lightSvg } = await mermaid.render('mermaid-pdf-temp-' + Date.now(), originalCode);
-            this.exportContainer.innerHTML = lightSvg;
-            
-            const svgElement = this.exportContainer.querySelector('svg');
-            
-            // CRITICAL: Use getBBox() for precise dimensions (prevents clipping of long notes)
-            // We need to append to DOM temporarily to get accurate BBox if not already there
             const bbox = svgElement.getBBox();
-            const width = bbox.width + bbox.x * 2 + 40; // Add padding
+            const width = bbox.width + bbox.x * 2 + 40;
             const height = bbox.height + bbox.y * 2 + 40;
 
-            // STEP 3: CAPTURE ON CANVAS AT 3X SCALE
             const img = new Image();
             img.onload = () => {
                 const canvas = document.createElement('canvas');
@@ -840,8 +847,6 @@ class MermaidEditorV2 {
                 const ctx = canvas.getContext('2d');
                 ctx.fillStyle = "white"; 
                 ctx.fillRect(0, 0, canvas.width, canvas.height);
-                
-                // Draw to canvas
                 ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
                 
                 const imgData = canvas.toDataURL('image/png');
@@ -852,15 +857,12 @@ class MermaidEditorV2 {
                 pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
                 pdf.save('mermaid-diagram.pdf');
                 
-                // Cleanup
                 this.exportContainer.innerHTML = '';
                 this.restoreAfterExport();
                 this.showFeedback("PDF Exported!");
             };
 
-            // Serialize with valid XML (fixing unclosed <br> tags)
             let cleanXml = new XMLSerializer().serializeToString(svgElement);
-            cleanXml = cleanXml.replace(/<br>/g, '<br/>').replace(/<br\s*>/g, '<br/>');
             const svg64 = btoa(unescape(encodeURIComponent(cleanXml)));
             img.src = 'data:image/svg+xml;base64,' + svg64;
 
