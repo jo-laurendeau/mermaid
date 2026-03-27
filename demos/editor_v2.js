@@ -16,7 +16,8 @@ class MermaidEditorV2 {
         this.predictionText = document.getElementById('prediction-text');
         
         this.renderTimeout = null;
-        this.isDark = true;
+        this.isDark = false; // "Inverted" theme is now the default
+        this.zoomLevel = 1;
         this.fileHandle = null;
 
         this.init();
@@ -92,10 +93,20 @@ class MermaidEditorV2 {
             }
         });
 
-        // Initial render
+        // Initial render & theme
+        this.applyTheme();
         await this.updatePreview();
         this.updateLineNumbers();
         this.updateCursorPos();
+    }
+
+    applyTheme() {
+        document.body.style.filter = this.isDark ? 'none' : 'invert(1) hue-rotate(180deg)';
+    }
+
+    toggleTheme() {
+        this.isDark = !this.isDark;
+        this.applyTheme();
     }
 
     syncScroll() {
@@ -209,9 +220,239 @@ class MermaidEditorV2 {
     loadTemplate(type) {
         let tpl = "";
         switch(type) {
+            case 'unified_v5_flow':
+                tpl = `flowchart LR
+    direction LR
+
+    subgraph PHASE1 ["Phase 1: Qualification & Analyse"]
+        direction TB
+        OPEN(["OPEN"])
+        DRAFT["DRAFT"]
+        TO_BE_PRIORITIZED["TO BE PRIORITIZED"]
+        SUBMITTED["SUBMITTED"]
+        MACRO_STUDY["MACRO-STUDY"]
+
+        OPEN -->|Create| DRAFT
+        DRAFT -->|Submit triage| TO_BE_PRIORITIZED
+        TO_BE_PRIORITIZED -->|Ready for study| SUBMITTED
+        SUBMITTED -->|Start| MACRO_STUDY
+    end
+
+    subgraph PHASE2 ["Phase 2: Analyse & Solution design"]
+        direction TB
+        MACRO_STUDY_NODE["MACRO-STUDY"]
+        NOTE2["<b>Analyze Solution</b><br/>Functional & Technical feasibility<br/>Impact on Product<br/>Effort estimation<br/>Preconise: RELEASE or HOTFIX"]
+        
+        MACRO_STUDY_NODE -.-> NOTE2
+    end
+
+    subgraph PHASE3 ["Phase 3: Priorisation"]
+        direction TB
+        BACKLOG["BACKLOG"]
+        WAITING_FOR_STAKEHOLDERS["WAITING FOR STAKEHOLDERS"]
+        PRIOTIZED_BACKLOG["PRIOTIZED BACKLOG"]
+        
+        BACKLOG -->|Request decision| WAITING_FOR_STAKEHOLDERS
+        WAITING_FOR_STAKEHOLDERS -->|Prioritized| PRIOTIZED_BACKLOG
+        PRIOTIZED_BACKLOG -->|Repriorization| WAITING_FOR_STAKEHOLDERS
+        
+        NOTE3["<b>Decision Gate</b><br/>- Accept & Prioritize<br/>- Refuse<br/>- Abandon"]
+        WAITING_FOR_STAKEHOLDERS -.-> NOTE3
+    end
+
+    subgraph PHASE4 ["Phase 4: Build & Quality check"]
+        direction TB
+        IN_PROGRESS["IN PROGRESS"]
+        CODE_REVIEW["CODE REVIEW"]
+        SUSPENDED["SUSPENDED"]
+        FUNCTIONAL_REVIEW["FUNCTIONAL REVIEW"]
+        READY_FOR_RELEASE["READY FOR RELEASE"]
+        READY_FOR_HOTFIX["READY FOR HOTFIX"]
+
+        IN_PROGRESS -->|Submit| CODE_REVIEW
+        CODE_REVIEW -->|Back| IN_PROGRESS
+        IN_PROGRESS -->|Suspend| SUSPENDED
+        SUSPENDED -->|Continue| IN_PROGRESS
+        CODE_REVIEW -->|Submit| FUNCTIONAL_REVIEW
+        FUNCTIONAL_REVIEW -->|Back| IN_PROGRESS
+        FUNCTIONAL_REVIEW -->|Normal| READY_FOR_RELEASE
+        FUNCTIONAL_REVIEW -->|Hotfix| READY_FOR_HOTFIX
+    end
+
+    subgraph PHASE5 ["Phase 5: Final validation & Delivery"]
+        direction TB
+        TO_INTEGRATE["TO_INTEGRATE"]
+        TO_BE_VALIDATED_BY_OWNER["TO BE VALIDATED BY OWNER"]
+        TO_DELIVER["TO DELIVER"]
+        DELIVERED_IN_ACCEPTANCE["DELIVERED IN ACCEPTANCE"]
+        ACCEPTANCE_VALIDATED["ACCEPTANCE VALIDATED"]
+        TO_DELIVER_IN_PROD["PREPARE PROD DELIVERY"]
+        DELIVERED_IN_PROD["DELIVERED IN PRODUCTION"]
+        PRODUCTION_VALIDATED["PRODUCTION VALIDATED"]
+        SOLVED_STATE["SOLVED"]
+
+        TO_INTEGRATE -->|Success| TO_BE_VALIDATED_BY_OWNER
+        TO_BE_VALIDATED_BY_OWNER -->|Validate| TO_DELIVER
+        TO_DELIVER -->|Acceptance| DELIVERED_IN_ACCEPTANCE
+        DELIVERED_IN_ACCEPTANCE -->|Validate| ACCEPTANCE_VALIDATED
+        ACCEPTANCE_VALIDATED -->|Prepare| TO_DELIVER_IN_PROD
+        TO_DELIVER_IN_PROD -->|Production| DELIVERED_IN_PROD
+        DELIVERED_IN_PROD -->|Validate| PRODUCTION_VALIDATED
+        PRODUCTION_VALIDATED -->|Confirm| SOLVED_STATE
+    end
+
+    subgraph PHASE_END ["End"]
+        direction TB
+        REJECTED["REJECTED"]
+        ABANDONNED["ABANDONNED"]
+        CLOSED["CLOSED"]
+        
+        REJECTED --> CLOSED
+        ABANDONNED --> CLOSED
+        SOLVED_STATE --> CLOSED
+    end
+
+    %% Cross-Phase Transitions
+    MACRO_STUDY -->|Accepted| BACKLOG
+    MACRO_STUDY -->|Abandoned| ABANDONNED
+    MACRO_STUDY -->|Refused| REJECTED
+
+    PRIOTIZED_BACKLOG -->|Start work| IN_PROGRESS
+    WAITING_FOR_STAKEHOLDERS -->|Refused| REJECTED
+    WAITING_FOR_STAKEHOLDERS -->|Abandoned| ABANDONNED
+    
+    REJECTED -->|Escalation| WAITING_FOR_STAKEHOLDERS
+    ABANDONNED -->|Escalation| WAITING_FOR_STAKEHOLDERS
+
+    READY_FOR_RELEASE -->|Release done| TO_INTEGRATE
+    READY_FOR_HOTFIX -->|Hotfix done| TO_INTEGRATE
+    
+    TO_BE_VALIDATED_BY_OWNER -->|Refused| IN_PROGRESS
+    DELIVERED_IN_ACCEPTANCE -->|Refused| IN_PROGRESS
+    DELIVERED_IN_PROD -->|Refused| IN_PROGRESS
+
+    CLOSED --> END_POINT(["[*]"])
+
+    %% Styles
+    classDef note fill:#fff5ad,stroke:#d4a017,stroke-dasharray: 2 2
+    class NOTE2,NOTE3 note
+    classDef phase stroke:#333,stroke-width:2px;
+    class PHASE1,PHASE2,PHASE3,PHASE4,PHASE5 phase`;
+                break;
+            case 'unified_v4.1':
+                tpl = `stateDiagram-v2
+    direction LR
+
+    %% Global State Definitions
+    state "OPEN" as OPEN
+    state "DRAFT" as DRAFT
+    state "TO BE PRIORITIZED" as TO_BE_PRIORITIZED
+    state "SUBMITTED" as SUBMITTED
+    state "MACRO-STUDY" as MACRO_STUDY
+    state "BACKLOG" as BACKLOG
+    state "WAITING FOR STAKEHOLDERS" as WAITING_FOR_STAKEHOLDERS
+    state "PRIOTIZED BACKLOG" as PRIOTIZED_BACKLOG
+    state "IN PROGRESS" as IN_PROGRESS
+    state "SUSPENDED" as SUSPENDED
+    state "CODE REVIEW" as CODE_REVIEW
+    state "TO DELIVER" as TO_DELIVER
+    state "FUNCTIONAL REVIEW" as FUNCTIONAL_REVIEW
+    state "READY FOR HOTFIX" as READY_FOR_HOTFIX
+    state "READY FOR RELEASE" as READY_FOR_RELEASE
+    state "TO_INTEGRATE" as TO_INTEGRATE
+    state "TO BE VALIDATED BY OWNER" as TO_BE_VALIDATED_BY_OWNER
+    state "DELIVERED IN ACCEPTANCE" as DELIVERED_IN_ACCEPTANCE
+    state "ACCEPTANCE VALIDATED" as ACCEPTANCE_VALIDATED
+    state "PREPARE PROD DELIVERY" as TO_DELIVER_IN_PROD
+    state "DELIVERED IN PRODUCTION" as DELIVERED_IN_PROD
+    state "PRODUCTION VALIDATED" as PRODUCTION_VALIDATED
+    state "ABANDONNED" as ABANDONNED
+    state "SOLVED" as SOLVED
+    state "REJECTED" as REJECTED
+    state "CLOSED" as CLOSED
+
+    [*] --> PHASE_QUALIFICATION
+
+    state "Phase 1: Qualification" as PHASE_QUALIFICATION {
+        direction TB
+        OPEN --> DRAFT : Create
+        DRAFT --> TO_BE_PRIORITIZED : Submit for priorisation P0 to P5
+        TO_BE_PRIORITIZED --> SUBMITTED : Ready for study
+        SUBMITTED --> MACRO_STUDY : Start Macro-study
+    }
+
+    state "Phase 2: Analyse" as PHASE_STUDY {
+        direction TB
+        MACRO_STUDY
+    }
+    
+    note right of PHASE_STUDY
+        Functional & Technical
+        feasibility & solution
+    end note
+
+    state "Phase 3: Priorisation" as PHASE_PRIORITISATION {
+        direction TB
+        BACKLOG --> WAITING_FOR_STAKEHOLDERS : Request decision
+        WAITING_FOR_STAKEHOLDERS --> PRIOTIZED_BACKLOG : Prioritized
+        PRIOTIZED_BACKLOG --> WAITING_FOR_STAKEHOLDERS : Repriorization
+    }
+
+    state "Phase 4: Construction" as PHASE_BUILD {
+        direction TB
+        IN_PROGRESS --> CODE_REVIEW : Submit to review
+        CODE_REVIEW --> IN_PROGRESS : Back to in progress
+        IN_PROGRESS --> SUSPENDED : Suspend work
+        SUSPENDED --> IN_PROGRESS : Continue work
+        CODE_REVIEW --> FUNCTIONAL_REVIEW : Submit to review
+        FUNCTIONAL_REVIEW --> IN_PROGRESS : Back to in progress
+        FUNCTIONAL_REVIEW --> READY_FOR_RELEASE : Normal flow
+        FUNCTIONAL_REVIEW --> READY_FOR_HOTFIX : Hotfix requested
+    }
+
+    state "Phase 5: Validation" as PHASE_FINAL_VALIDATION {
+        direction TB
+        TO_INTEGRATE --> TO_BE_VALIDATED_BY_OWNER : Integration success
+        TO_BE_VALIDATED_BY_OWNER --> TO_DELIVER : Validate
+        TO_DELIVER --> DELIVERED_IN_ACCEPTANCE : Delivered in acceptance
+        DELIVERED_IN_ACCEPTANCE --> ACCEPTANCE_VALIDATED : Validate in acceptance
+        ACCEPTANCE_VALIDATED --> TO_DELIVER_IN_PROD : prepare production delivery
+        TO_DELIVER_IN_PROD --> DELIVERED_IN_PROD : delivered in production
+        DELIVERED_IN_PROD --> PRODUCTION_VALIDATED : Validate in production
+        PRODUCTION_VALIDATED --> SOLVED : Solution confirmed
+    }
+
+    state "End" as END {
+        direction TB
+        REJECTED --> CLOSED
+        ABANDONNED --> CLOSED
+        SOLVED --> CLOSED
+    }
+
+    %% Cross-Phase / Boundary Transitions
+    MACRO_STUDY --> BACKLOG : Accepted
+    MACRO_STUDY --> ABANDONNED : Abandonned
+    MACRO_STUDY --> REJECTED : Refused
+
+    PHASE_PRIORITISATION --> IN_PROGRESS : Start work
+    WAITING_FOR_STAKEHOLDERS --> REJECTED : Refused
+    WAITING_FOR_STAKEHOLDERS --> ABANDONNED : Abandonned
+    
+    REJECTED --> WAITING_FOR_STAKEHOLDERS : escalation
+    ABANDONNED --> WAITING_FOR_STAKEHOLDERS : escalation
+
+    READY_FOR_RELEASE --> TO_INTEGRATE : Released done
+    READY_FOR_HOTFIX --> TO_INTEGRATE : Hotfix done
+    
+    TO_BE_VALIDATED_BY_OWNER --> IN_PROGRESS : Solution doesn't work
+    DELIVERED_IN_ACCEPTANCE --> IN_PROGRESS : Acceptance refused
+    DELIVERED_IN_PROD --> IN_PROGRESS : Refused in Production
+
+    CLOSED --> [*]`;
+                break;
             case 'unified_v4':
                 tpl = `stateDiagram-v2
-    direction TB
+    direction LR
 
     %% Global State Definitions
     state "OPEN" as OPEN
@@ -237,32 +478,28 @@ class MermaidEditorV2 {
 
     [*] --> PHASE_QUALIFICATION
 
-    state "Phase 1: Qualification & Analyse" as PHASE_QUALIFICATION {
+    state "Phase 1: Qualification" as PHASE_QUALIFICATION {
+        direction TB
         OPEN --> DRAFT : Create
         DRAFT --> TO_BE_PRIORITIZED : Submit for priorisation P0 to P5
         TO_BE_PRIORITIZED --> SUBMITTED : Ready for study
         SUBMITTED --> MACRO_STUDY : Start Macro-study
     }
 
-    state "Phase 2: Analyse & Solution design" as PHASE_STUDY {
+    state "Phase 2: Analyse" as PHASE_STUDY {
+        direction TB
         MACRO_STUDY
     }
-    %% Transitions transverses
-    PHASE_STUDY --> BACKLOG: Accepted
-    PHASE_STUDY --> ABANDONNED : Abandonned
-    PHASE_STUDY --> REJECTED : Refused
 
     state "Phase 3: Priorisation" as PHASE_PRIORITISATION {
+        direction TB
         BACKLOG --> WAITING_FOR_STAKEHOLDERS : Request decision
         WAITING_FOR_STAKEHOLDERS --> PRIOTIZED_BACKLOG : Prioritized
         PRIOTIZED_BACKLOG --> WAITING_FOR_STAKEHOLDERS : Repriorization
     }
-    %% Transitions transverses
-    PHASE_PRIORITISATION --> IN_PROGRESS : Start work
-    WAITING_FOR_STAKEHOLDERS --> REJECTED : Refused
-    WAITING_FOR_STAKEHOLDERS --> ABANDONNED : Abandonned
 
-    state "Phase 4: Build & Quality check" as PHASE_BUILD {
+    state "Phase 4: Build" as PHASE_BUILD {
+        direction TB
         IN_PROGRESS --> CODE_REVIEW : Submit to review
         CODE_REVIEW --> IN_PROGRESS : Back to in progress
         IN_PROGRESS --> SUSPENDED : Suspend work
@@ -272,24 +509,34 @@ class MermaidEditorV2 {
         FUNCTIONAL_REVIEW --> READY_FOR_RELEASE : Normal path
         FUNCTIONAL_REVIEW --> READY_FOR_HOTFIX : Hotfix requested
     }
-    %% Transitions transverses
-    READY_FOR_RELEASE --> TO_BE_VALIDATED_BY_OWNER : Normal path
-    READY_FOR_HOTFIX --> TO_BE_VALIDATED_BY_OWNER : Stakeholder Hotfix
 
-    state "Phase 5: Final validation & Delivery" as PHASE_FINAL_VALIDATION {
+    state "Phase 5: Validation" as PHASE_FINAL_VALIDATION {
+        direction TB
         TO_BE_VALIDATED_BY_OWNER --> TO_DELIVER : Validate
         TO_DELIVER --> SOLVED : Solution confirmed
     }
-    %% Transitions transverses
-    TO_BE_VALIDATED_BY_OWNER --> IN_PROGRESS : Solution doesn't work
 
     state "End" as END {
-        REJECTED
-        ABANDONNED
-        SOLVED
+        direction TB
+        REJECTED --> CLOSED
+        ABANDONNED --> CLOSED
+        SOLVED --> CLOSED
     }
-    %% Clôture globale
-    END --> CLOSED
+
+    %% Cross-Phase / Boundary Transitions
+    MACRO_STUDY --> BACKLOG : Accepted
+    MACRO_STUDY --> ABANDONNED : Abandonned
+    MACRO_STUDY --> REJECTED : Refused
+
+    PHASE_PRIORITISATION --> IN_PROGRESS : Start work
+    WAITING_FOR_STAKEHOLDERS --> REJECTED : Refused
+    WAITING_FOR_STAKEHOLDERS --> ABANDONNED : Abandonned
+    
+    READY_FOR_RELEASE --> TO_BE_VALIDATED_BY_OWNER : Normal path
+    READY_FOR_HOTFIX --> TO_BE_VALIDATED_BY_OWNER : Stakeholder Hotfix
+    
+    TO_BE_VALIDATED_BY_OWNER --> IN_PROGRESS : Solution doesn't work
+
     CLOSED --> [*]`;
                 break;
             case 'unified_v3':
@@ -607,13 +854,37 @@ class MermaidEditorV2 {
     }
 
     downloadSVG() {
-        const svg = this.output.innerHTML;
-        const blob = new Blob([svg], { type: 'image/svg+xml' });
+        const svgElement = this.output.querySelector('svg');
+        if (!svgElement) return;
+
+        // 1. Serialize using XMLSerializer for better XML conformance
+        let xml = new XMLSerializer().serializeToString(svgElement);
+        
+        // 2. Fix Mermaid's <br> unclosed tags which break some standalone SVG viewers
+        // STANDALONE SVG MUST BE VALID XML
+        xml = xml.replace(/<br>/g, '<br/>');
+        xml = xml.replace(/<br\s*>/g, '<br/>');
+        
+        // 3. Ensure XML namespace is present and correct
+        if (!xml.includes('xmlns="http://www.w3.org/2000/svg"')) {
+            xml = xml.replace('<svg ', '<svg xmlns="http://www.w3.org/2000/svg" ');
+        }
+        
+        // 4. Add XML declaration if missing
+        if (!xml.startsWith('<?xml')) {
+            xml = '<?xml version="1.0" encoding="UTF-8" standalone="no"?>\n' + xml;
+        }
+
+        const blob = new Blob([xml], { type: 'image/svg+xml;charset=utf-8' });
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
         a.href = url;
-        a.download = 'mermaid-editor-v2.svg';
+        a.download = 'mermaid-diagram.svg';
         a.click();
+        
+        // Cleanup
+        setTimeout(() => URL.revokeObjectURL(url), 100);
+        this.showFeedback("SVG Exported!");
     }
 
     downloadPNG() {
@@ -641,6 +912,105 @@ class MermaidEditorV2 {
             a.click();
         };
         img.src = image64;
+    }
+
+    async downloadPDF() {
+        const originalCode = this.editor.value.trim();
+        if (!originalCode) return;
+
+        this.showFeedback("Generating PDF...");
+        
+        // Save UI filter to restore later
+        const originalFilter = document.body.style.filter;
+
+        try {
+            // STEP 1: FORCE THEME TO LIGHT (DEFAULT)
+            // Important: Disable UI inversion during capture to avoid interference
+            document.body.style.filter = 'none';
+
+            await mermaid.initialize({
+                theme: 'default', // "default" is the specific keyword for light theme
+                fontFamily: 'Outfit',
+                securityLevel: 'loose'
+            });
+
+            // Stability delay to ensure Mermaid state is fully applied
+            await new Promise(r => setTimeout(r, 200));
+
+            // STEP 2: RENDER A STICKY LIGHT SVG
+            const { svg: lightSvg } = await mermaid.render('mermaid-pdf-temp-' + Date.now(), originalCode);
+            
+            // STEP 3: MEASURE DIMENSIONS IN A HIDDEN CONTAINER
+            const tempDiv = document.createElement('div');
+            tempDiv.style.position = 'absolute';
+            tempDiv.style.left = '-9999px';
+            tempDiv.style.top = '-9999px';
+            tempDiv.innerHTML = lightSvg;
+            document.body.appendChild(tempDiv);
+            
+            const svgElement = tempDiv.querySelector('svg');
+            const bbox = svgElement.viewBox.baseVal;
+            const width = bbox.width || svgElement.clientWidth || 800;
+            const height = bbox.height || svgElement.clientHeight || 600;
+
+            // STEP 4: CAPTURE ON CANVAS AT 3X SCALE
+            const img = new Image();
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const scale = 3; 
+                canvas.width = width * scale;
+                canvas.height = height * scale;
+                
+                const ctx = canvas.getContext('2d');
+                ctx.fillStyle = "white"; // Force white background
+                ctx.fillRect(0, 0, canvas.width, canvas.height);
+                
+                // Draw the SVG image onto the white canvas
+                ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+                
+                const imgData = canvas.toDataURL('image/png');
+                const { jsPDF } = window.jspdf;
+                
+                const orientation = canvas.width > canvas.height ? 'l' : 'p';
+                const pdf = new jsPDF(orientation, 'px', [canvas.width, canvas.height]);
+                pdf.addImage(imgData, 'PNG', 0, 0, canvas.width, canvas.height);
+                pdf.save('mermaid-diagram.pdf');
+                
+                // Cleanup
+                document.body.removeChild(tempDiv);
+                
+                // RESTORE UI AND THEME
+                this.restoreAfterExport(originalFilter);
+                this.showFeedback("PDF Exported!");
+            };
+
+            // Ensure XML compliance for the temporary SVG before data URL creation
+            let cleanXml = new XMLSerializer().serializeToString(svgElement);
+            cleanXml = cleanXml.replace(/<br>/g, '<br/>').replace(/<br\s*>/g, '<br/>');
+            const svg64 = btoa(unescape(encodeURIComponent(cleanXml)));
+            img.src = 'data:image/svg+xml;base64,' + svg64;
+
+        } catch (e) {
+            console.error("PDF Export Error", e);
+            this.showFeedback("Export Error!");
+            this.restoreAfterExport(originalFilter);
+        }
+    }
+
+    async restoreAfterExport(originalFilter) {
+        // Restore UI filter
+        document.body.style.filter = originalFilter;
+
+        // Restore Mermaid's dark theme
+        await mermaid.initialize({
+            theme: 'dark',
+            fontFamily: 'Outfit',
+            securityLevel: 'loose',
+            suppressErrorRendering: true
+        });
+        
+        // Re-render the visual preview
+        this.updatePreview();
     }
 
     async openFile() {
@@ -706,6 +1076,33 @@ class MermaidEditorV2 {
                 this.errorBadge.innerText = 'Syntax Error';
             }
         }, 2000);
+    }
+
+    // Zoom Controls
+    zoomIn() {
+        this.zoomLevel += 0.15;
+        this.applyZoom();
+    }
+
+    zoomOut() {
+        if (this.zoomLevel > 0.2) {
+            this.zoomLevel -= 0.15;
+            this.applyZoom();
+        }
+    }
+
+    resetZoom() {
+        this.zoomLevel = 1;
+        this.applyZoom();
+    }
+
+    applyZoom() {
+        const svg = this.output.querySelector('svg');
+        if (svg) {
+            svg.style.transform = `scale(${this.zoomLevel})`;
+            svg.style.transformOrigin = 'center';
+            svg.style.transition = 'transform 0.2s ease';
+        }
     }
 }
 

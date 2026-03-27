@@ -300,3 +300,36 @@ main {
   background: var(--border);
   margin: 4px 8px;
 }
+.zoom-controls {
+    position: absolute;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+    z-index: 1000;
+}
+
+.zoom-controls button {
+    width: 36px;
+    height: 36px;
+    padding: 0;
+    justify-content: center;
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 16px;
+    font-weight: 600;
+    color: var(--accent);
+    backdrop-filter: var(--glass);
+}
+
+.zoom-controls button:hover {
+    background: var(--accent);
+    color: var(--bg-deep);
+}
+
+#graph-output svg {
+    transform-origin: center;
+    transition: transform 0.2s ease;
+}
